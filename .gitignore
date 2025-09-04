@@ -39,3 +39,6 @@ installed.lock
 # Error log files
 php_errors.log
 error.log
+
+# Debugging documentation
+DEBUGGING.md
