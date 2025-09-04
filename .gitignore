@@ -32,3 +32,6 @@ node_modules/
 # phpinfo.php
 # test.php
 # test_db.php
+
+# Installation lock file
+installed.lock
