@@ -1,27 +1,33 @@
 <?php
-// dashboard.php - User dashboard
+// shares.php - Display all public shares
 
 require_once 'init.php';
 
-// Redirect if not logged in
-if (!isLoggedIn()) {
-    redirect('login.php');
-}
-
 $error = '';
 $shares = [];
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$page = max(1, $page);
+$limit = 10;
+$offset = ($page - 1) * $limit;
 
 try {
     $db = new Database();
     $pdo = $db->getConnection();
     
-    // Get user's shares
-    $stmt = $pdo->prepare("SELECT * FROM shares WHERE created_by = ? ORDER BY created_at DESC");
-    $stmt->execute([$_SESSION['user_id']]);
+    // Get total count of public shares
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM shares WHERE is_public = 1 AND (expiration_date IS NULL OR expiration_date > NOW())");
+    $stmt->execute();
+    $total = $stmt->fetch()['count'];
+    
+    // Get public shares with pagination
+    $stmt = $pdo->prepare("SELECT s.*, u.username FROM shares s LEFT JOIN users u ON s.created_by = u.id WHERE s.is_public = 1 AND (s.expiration_date IS NULL OR s.expiration_date > NOW()) ORDER BY s.created_at DESC LIMIT ? OFFSET ?");
+    $stmt->execute([$limit, $offset]);
     $shares = $stmt->fetchAll();
+    
+    $totalPages = ceil($total / $limit);
 } catch (PDOException $e) {
-    $error = 'Failed to retrieve your shares. Please try again.';
-    error_log("Dashboard error: " . $e->getMessage());
+    $error = 'Failed to retrieve shares. Please try again.';
+    error_log("Shares page error: " . $e->getMessage());
 }
 ?>
 
@@ -30,7 +36,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - <?php echo SITE_NAME; ?></title>
+    <title>Public Shares - <?php echo SITE_NAME; ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -42,12 +48,17 @@ try {
                 <h1><?php echo SITE_NAME; ?></h1>
             </div>
             <nav class="nav">
-                <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
-                <a href="dashboard.php" class="btn btn-secondary">Dashboard</a>
-                <?php if (isAdmin()): ?>
-                    <a href="admin/" class="btn btn-warning">Admin Panel</a>
+                <?php if (isLoggedIn()): ?>
+                    <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
+                    <a href="dashboard.php" class="btn btn-secondary">Dashboard</a>
+                    <?php if (isAdmin()): ?>
+                        <a href="admin/" class="btn btn-warning">Admin Panel</a>
+                    <?php endif; ?>
+                    <a href="logout.php" class="btn btn-outline">Logout</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn btn-secondary">Login</a>
+                    <a href="register.php" class="btn btn-primary">Register</a>
                 <?php endif; ?>
-                <a href="logout.php" class="btn btn-outline">Logout</a>
             </nav>
         </div>
     </header>
@@ -55,29 +66,12 @@ try {
     <!-- Main Content -->
     <main class="container">
         <div class="auth-form glassmorphism">
-            <h2>Your Dashboard</h2>
+            <h2>Public Shares</h2>
+            <p>Browse recently shared content from the community</p>
             
             <?php if ($error): ?>
                 <div class="alert alert-error"><?php echo $error; ?></div>
             <?php endif; ?>
-            
-            <div class="dashboard-stats">
-                <div class="stat-card glassmorphism">
-                    <h3><?php echo count($shares); ?></h3>
-                    <p>Total Shares</p>
-                </div>
-                <div class="stat-card glassmorphism">
-                    <h3>
-                        <?php 
-                        $total_views = array_sum(array_column($shares, 'view_count'));
-                        echo $total_views;
-                        ?>
-                    </h3>
-                    <p>Total Views</p>
-                </div>
-            </div>
-            
-            <h3>Your Shares</h3>
             
             <?php if (count($shares) > 0): ?>
                 <div class="shares-list">
@@ -86,32 +80,60 @@ try {
                             <div class="share-info">
                                 <h4><?php echo htmlspecialchars($share['title'] ?? 'Untitled'); ?></h4>
                                 <p class="share-meta">
-                                    <span><i class="fas fa-<?php 
-                                        echo $share['share_type'] === 'text' ? 'font' : 
-                                            ($share['share_type'] === 'code' ? 'code' : 'file'); 
-                                    ?>"></i> <?php echo ucfirst($share['share_type']); ?></span>
+                                    <span>
+                                        <i class="fas fa-<?php 
+                                            echo $share['share_type'] === 'text' ? 'font' : 
+                                                ($share['share_type'] === 'code' ? 'code' : 'file'); 
+                                        ?>"></i> 
+                                        <?php echo ucfirst($share['share_type']); ?>
+                                    </span>
+                                    <?php if ($share['created_by']): ?>
+                                        <span><i class="fas fa-user"></i> <?php echo htmlspecialchars($share['username']); ?></span>
+                                    <?php else: ?>
+                                        <span><i class="fas fa-user-secret"></i> Anonymous</span>
+                                    <?php endif; ?>
                                     <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y', strtotime($share['created_at'])); ?></span>
                                     <span><i class="fas fa-eye"></i> <?php echo $share['view_count']; ?> views</span>
                                 </p>
                             </div>
                             <div class="share-actions">
-                                <a href="view.php?key=<?php echo $share['share_key']; ?>" class="btn btn-secondary" target="_blank">
+                                <a href="view.php?key=<?php echo $share['share_key']; ?>" class="btn btn-secondary">
                                     <i class="fas fa-eye"></i> View
                                 </a>
-                                <button class="btn btn-outline" onclick="copyToClipboard('<?php echo SITE_URL; ?>/view.php?key=<?php echo $share['share_key']; ?>')">
-                                    <i class="fas fa-copy"></i> Copy Link
-                                </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
                 </div>
+                
+                <!-- Pagination -->
+                <?php if ($totalPages > 1): ?>
+                    <div class="pagination">
+                        <?php if ($page > 1): ?>
+                            <a href="?page=<?php echo $page - 1; ?>" class="btn btn-outline">
+                                <i class="fas fa-arrow-left"></i> Previous
+                            </a>
+                        <?php endif; ?>
+                        
+                        <span class="pagination-info">
+                            Page <?php echo $page; ?> of <?php echo $totalPages; ?>
+                        </span>
+                        
+                        <?php if ($page < $totalPages): ?>
+                            <a href="?page=<?php echo $page + 1; ?>" class="btn btn-outline">
+                                Next <i class="fas fa-arrow-right"></i>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             <?php else: ?>
-                <p>You haven't shared anything yet.</p>
-                <p class="text-center">
-                    <a href="share-text.php" class="btn btn-primary">Share Text</a>
-                    <a href="share-code.php" class="btn btn-primary">Share Code</a>
-                    <a href="share-file.php" class="btn btn-primary">Share File</a>
-                </p>
+                <div class="alert alert-info">
+                    <p>No public shares found.</p>
+                    <p class="text-center">
+                        <a href="share-text.php" class="btn btn-primary">Share Text</a>
+                        <a href="share-code.php" class="btn btn-primary">Share Code</a>
+                        <a href="share-file.php" class="btn btn-primary">Share File</a>
+                    </p>
+                </div>
             <?php endif; ?>
             
             <p class="text-center">

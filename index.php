@@ -58,6 +58,12 @@ require_once 'init.php';
                     </a>
                 </div>
                 
+                <p class="text-center">
+                    <a href="shares.php" class="btn btn-outline">
+                        <i class="fas fa-globe"></i> Browse Public Shares
+                    </a>
+                </p>
+                
                 <p class="hero-info">
                     <i class="fas fa-lock"></i> Secure & Private | 
                     <i class="fas fa-bolt"></i> Fast & Easy | 
@@ -112,6 +118,7 @@ require_once 'init.php';
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="index.php">Home</a></li>
+                        <li><a href="shares.php">Public Shares</a></li>
                         <li><a href="share-text.php">Share Text</a></li>
                         <li><a href="share-code.php">Share Code</a></li>
                         <li><a href="share-file.php">Share File</a></li>

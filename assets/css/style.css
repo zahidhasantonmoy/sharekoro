@@ -365,6 +365,7 @@ body {
   color: white;
 }
 
+/* Form Groups */
 .form-group {
   margin-bottom: 20px;
 }
@@ -373,6 +374,7 @@ body {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
+  color: #e0e0e0;
 }
 
 .form-group input,
@@ -386,6 +388,7 @@ body {
   color: white;
   font-size: 16px;
   transition: var(--transition);
+  backdrop-filter: blur(5px);
 }
 
 .form-group input:focus,
@@ -401,6 +404,26 @@ body {
   resize: vertical;
 }
 
+/* Improve select visibility */
+.form-group select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.form-group select:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+}
+
+.form-group select option {
+  background: var(--dark-color);
+  color: white;
+}
+
 .text-center {
   text-align: center;
   margin-top: 20px;
@@ -414,6 +437,21 @@ body {
 
 .text-center a:hover {
   text-decoration: underline;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--glass-border);
+}
+
+.pagination-info {
+  color: #aaa;
+  font-weight: 500;
 }
 
 /* Alerts */
@@ -527,12 +565,20 @@ body {
   gap: 15px;
   font-size: 0.9rem;
   color: #aaa;
+  flex-wrap: wrap;
 }
 
 .share-meta span {
   display: flex;
   align-items: center;
   gap: 5px;
+}
+
+.alert-info {
+  background: rgba(108, 99, 255, 0.1);
+  border: 1px solid var(--primary-color);
+  color: #a3a0ff;
+  text-align: center;
 }
 
 .share-actions {

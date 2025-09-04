@@ -164,11 +164,30 @@ if (empty($share_key)) {
                     <button class="btn btn-secondary" onclick="window.print()">
                         <i class="fas fa-print"></i> Print
                     </button>
+                    <button class="btn btn-outline" onclick="document.getElementById('report-modal').style.display='block'">
+                        <i class="fas fa-flag"></i> Report
+                    </button>
                 </div>
                 
                 <p class="text-center">
                     <a href="index.php"><i class="fas fa-arrow-left"></i> Back to Home</a>
                 </p>
+            </div>
+            
+            <!-- Report Modal -->
+            <div id="report-modal" class="modal">
+                <div class="modal-content glassmorphism">
+                    <span class="close" onclick="document.getElementById('report-modal').style.display='none'">&times;</span>
+                    <h2>Report Share</h2>
+                    <form method="POST" action="report.php">
+                        <input type="hidden" name="share_id" value="<?php echo $share['id']; ?>">
+                        <div class="form-group">
+                            <label for="reason">Reason for reporting:</label>
+                            <textarea id="reason" name="reason" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Report</button>
+                    </form>
+                </div>
             </div>
         <?php endif; ?>
     </main>
@@ -186,6 +205,7 @@ if (empty($share_key)) {
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="index.php">Home</a></li>
+                        <li><a href="shares.php">Public Shares</a></li>
                         <li><a href="share-text.php">Share Text</a></li>
                         <li><a href="share-code.php">Share Code</a></li>
                         <li><a href="share-file.php">Share File</a></li>
