@@ -1,8 +1,6 @@
 <?php
 // functions.php - Utility functions
 
-require_once 'db.php';
-
 /**
  * Generate a unique share key
  */
