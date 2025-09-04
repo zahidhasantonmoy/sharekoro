@@ -26,3 +26,9 @@ node_modules/
 
 # Environment variables
 .env
+
+# Debug files (uncomment for production)
+# debug.php
+# phpinfo.php
+# test.php
+# test_db.php
