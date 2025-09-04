@@ -58,8 +58,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - <?php echo SITE_NAME; ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1><a href="index.php" style="text-decoration: none; color: inherit;"><?php echo SITE_NAME; ?></a></h1>
+            </div>
+            <nav class="nav">
+                <a href="index.php" class="btn btn-outline" title="Home">
+                    <i class="fas fa-home"></i>
+                </a>
+                <?php if (isLoggedIn()): ?>
+                    <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
+                    <a href="dashboard.php" class="btn btn-secondary">Dashboard</a>
+                    <?php if (isAdmin()): ?>
+                        <a href="admin/" class="btn btn-warning">Admin Panel</a>
+                    <?php endif; ?>
+                    <a href="logout.php" class="btn btn-outline">Logout</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn btn-secondary">Login</a>
+                    <a href="register.php" class="btn btn-primary">Register</a>
+                <?php endif; ?>
+            </nav>
+        </div>
+    </header>
+
     <div class="container">
         <div class="auth-form glassmorphism">
             <h2>Login to Your Account</h2>

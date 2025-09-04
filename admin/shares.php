@@ -58,9 +58,12 @@ try {
     <header class="header">
         <div class="container">
             <div class="logo">
-                <h1><?php echo SITE_NAME; ?> Admin</h1>
+                <h1><a href="../index.php" style="text-decoration: none; color: inherit;"><?php echo SITE_NAME; ?> Admin</a></h1>
             </div>
             <nav class="nav">
+                <a href="../index.php" class="btn btn-outline" title="Home">
+                    <i class="fas fa-home"></i>
+                </a>
                 <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
                 <a href="index.php" class="btn btn-secondary">Dashboard</a>
                 <a href="users.php" class="btn btn-secondary">Users</a>
