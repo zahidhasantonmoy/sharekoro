@@ -1,0 +1,120 @@
+<?php
+// functions.php - Utility functions
+
+require_once 'db.php';
+
+/**
+ * Generate a unique share key
+ */
+function generateShareKey($length = 12) {
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    
+    return $randomString;
+}
+
+/**
+ * Get share expiration date based on selected option
+ */
+function getExpirationDate($option) {
+    $now = new DateTime();
+    
+    switch ($option) {
+        case '1_hour':
+            $now->add(new DateInterval('PT1H'));
+            break;
+        case '1_day':
+            $now->add(new DateInterval('P1D'));
+            break;
+        case '1_week':
+            $now->add(new DateInterval('P1W'));
+            break;
+        case '1_month':
+            $now->add(new DateInterval('P1M'));
+            break;
+        case 'never':
+        default:
+            return null;
+    }
+    
+    return $now->format('Y-m-d H:i:s');
+}
+
+/**
+ * Format file size for display
+ */
+function formatFileSize($bytes) {
+    $units = ['B', 'KB', 'MB', 'GB'];
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+    $bytes /= pow(1024, $pow);
+    
+    return round($bytes, 2) . ' ' . $units[$pow];
+}
+
+/**
+ * Validate file type
+ */
+function isValidFileType($mimeType) {
+    return in_array($mimeType, ALLOWED_FILE_TYPES);
+}
+
+/**
+ * Sanitize input data
+ */
+function sanitizeInput($data) {
+    $data = trim($data);
+    $data = stripslashes($data);
+    $data = htmlspecialchars($data);
+    return $data;
+}
+
+/**
+ * Hash password
+ */
+function hashPassword($password) {
+    return password_hash($password, PASSWORD_DEFAULT);
+}
+
+/**
+ * Verify password
+ */
+function verifyPassword($password, $hash) {
+    return password_verify($password, $hash);
+}
+
+/**
+ * Check if user is logged in
+ */
+function isLoggedIn() {
+    return isset($_SESSION['user_id']);
+}
+
+/**
+ * Check if user is admin
+ */
+function isAdmin() {
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+}
+
+/**
+ * Redirect to a page
+ */
+function redirect($url) {
+    header("Location: $url");
+    exit();
+}
+
+/**
+ * Get current user ID
+ */
+function getCurrentUserId() {
+    return isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;
+}
+?>
