@@ -9,8 +9,11 @@
 .DS_Store
 Thumbs.db
 
-# Uploads directory (optional - you might want to keep some files)
+# Uploads directory contents (but not the directory itself)
 uploads/*
+
+# Keep the uploads directory and its .htaccess file
+!uploads/.htaccess
 
 # Log files
 *.log
