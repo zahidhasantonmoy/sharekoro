@@ -1,0 +1,25 @@
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Uploads directory (optional - you might want to keep some files)
+uploads/*
+
+# Log files
+*.log
+
+# Composer
+vendor/
+
+# Node.js
+node_modules/
+
+# Environment variables
+.env
