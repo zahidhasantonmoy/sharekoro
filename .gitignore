@@ -35,3 +35,7 @@ node_modules/
 
 # Installation lock file
 installed.lock
+
+# Error log files
+php_errors.log
+error.log
