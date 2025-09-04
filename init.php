@@ -1,28 +1,37 @@
 <?php
 // init.php - Initialize session and include required files
 
-// Set error reporting first
+// Set error reporting first (this is safe to do anytime)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Start session
+// Handle session configuration properly
 if (session_status() === PHP_SESSION_NONE) {
+    // Only set session parameters if no session is active
+    require_once 'config.php';
+    
+    // Set session lifetime after config is loaded
+    if (defined('SESSION_LIFETIME')) {
+        ini_set('session.gc_maxlifetime', SESSION_LIFETIME);
+        session_set_cookie_params([
+            'lifetime' => SESSION_LIFETIME,
+            'path' => '/',
+            'domain' => '',
+            'secure' => false,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+    }
+    
+    // Now start the session
     session_start();
+} else {
+    // Session already started, just load config
+    require_once 'config.php';
 }
 
-// Include configuration first
-require_once 'config.php';
-
-// Set session lifetime after config is loaded
-if (defined('SESSION_LIFETIME')) {
-    ini_set('session.gc_maxlifetime', SESSION_LIFETIME);
-    session_set_cookie_params(SESSION_LIFETIME);
-}
-
-// Include database class
+// Include database class and functions
 require_once 'db.php';
-
-// Include functions (make sure db.php is not required again in functions.php)
 require_once 'functions.php';
 
 // Set timezone
