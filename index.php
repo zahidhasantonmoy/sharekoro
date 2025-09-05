@@ -26,14 +26,24 @@ require_once 'init.php';
                 </a>
                 <?php if (isLoggedIn()): ?>
                     <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
-                    <a href="dashboard.php" class="btn btn-secondary">Dashboard</a>
+                    <a href="dashboard.php" class="btn btn-dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
                     <?php if (isAdmin()): ?>
-                        <a href="admin/" class="btn btn-warning">Admin Panel</a>
+                        <a href="admin/" class="btn btn-admin">
+                            <i class="fas fa-cog"></i> Admin Panel
+                        </a>
                     <?php endif; ?>
-                    <a href="logout.php" class="btn btn-outline">Logout</a>
+                    <a href="logout.php" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
                 <?php else: ?>
-                    <a href="login.php" class="btn btn-secondary">Login</a>
-                    <a href="register.php" class="btn btn-primary">Register</a>
+                    <a href="login.php" class="btn btn-secondary">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="register.php" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
                 <?php endif; ?>
             </nav>
         </div>
@@ -62,10 +72,10 @@ require_once 'init.php';
                 </div>
                 
                 <p class="text-center">
-                    <a href="latest.php" class="btn btn-outline">
+                    <a href="latest.php" class="btn btn-info">
                         <i class="fas fa-history"></i> View Latest Shares
                     </a>
-                    <a href="shares.php" class="btn btn-outline">
+                    <a href="shares.php" class="btn btn-success">
                         <i class="fas fa-globe"></i> Browse Public Shares
                     </a>
                 </p>

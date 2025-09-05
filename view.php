@@ -79,14 +79,24 @@ if (empty($share_key)) {
                 </a>
                 <?php if (isLoggedIn()): ?>
                     <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
-                    <a href="dashboard.php" class="btn btn-secondary">Dashboard</a>
+                    <a href="dashboard.php" class="btn btn-dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
                     <?php if (isAdmin()): ?>
-                        <a href="admin/" class="btn btn-warning">Admin Panel</a>
+                        <a href="admin/" class="btn btn-admin">
+                            <i class="fas fa-cog"></i> Admin Panel
+                        </a>
                     <?php endif; ?>
-                    <a href="logout.php" class="btn btn-outline">Logout</a>
+                    <a href="logout.php" class="btn btn-logout">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
                 <?php else: ?>
-                    <a href="login.php" class="btn btn-secondary">Login</a>
-                    <a href="register.php" class="btn btn-primary">Register</a>
+                    <a href="login.php" class="btn btn-secondary">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="register.php" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
                 <?php endif; ?>
             </nav>
         </div>
@@ -154,20 +164,20 @@ if (empty($share_key)) {
                     <div class="share-content file-share">
                         <p><i class="fas fa-file"></i> <?php echo htmlspecialchars($share['file_name']); ?></p>
                         <p>Size: <?php echo formatFileSize($share['file_size']); ?></p>
-                        <a href="<?php echo htmlspecialchars($share['file_path']); ?>" class="btn btn-primary" download>
+                        <a href="<?php echo htmlspecialchars($share['file_path']); ?>" class="btn btn-download" download>
                             <i class="fas fa-download"></i> Download File
                         </a>
                     </div>
                 <?php endif; ?>
                 
                 <div class="share-actions">
-                    <button class="btn btn-secondary" onclick="copyToClipboard(window.location.href)">
+                    <button class="btn btn-copy" onclick="copyToClipboard(window.location.href)">
                         <i class="fas fa-copy"></i> Copy Link
                     </button>
-                    <button class="btn btn-secondary" onclick="window.print()">
+                    <button class="btn btn-print" onclick="window.print()">
                         <i class="fas fa-print"></i> Print
                     </button>
-                    <button class="btn btn-outline" onclick="document.getElementById('report-modal').style.display='block'">
+                    <button class="btn btn-report" onclick="document.getElementById('report-modal').style.display='block'">
                         <i class="fas fa-flag"></i> Report
                     </button>
                 </div>

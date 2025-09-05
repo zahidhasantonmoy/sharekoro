@@ -64,11 +64,21 @@ try {
                     <i class="fas fa-home"></i>
                 </a>
                 <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
-                <a href="index.php" class="btn btn-secondary">Dashboard</a>
-                <a href="users.php" class="btn btn-secondary">Users</a>
-                <a href="shares.php" class="btn btn-secondary">Shares</a>
-                <a href="reports.php" class="btn btn-secondary">Reports</a>
-                <a href="../logout.php" class="btn btn-outline">Logout</a>
+                <a href="index.php" class="btn btn-dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a href="users.php" class="btn btn-secondary">
+                    <i class="fas fa-users"></i> Users
+                </a>
+                <a href="shares.php" class="btn btn-secondary">
+                    <i class="fas fa-share-alt"></i> Shares
+                </a>
+                <a href="reports.php" class="btn btn-secondary">
+                    <i class="fas fa-flag"></i> Reports
+                </a>
+                <a href="../logout.php" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
             </nav>
         </div>
     </header>
