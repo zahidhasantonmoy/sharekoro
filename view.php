@@ -94,8 +94,11 @@ if (empty($share_key)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Share - <?php echo SITE_NAME; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/modern-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Header -->
@@ -106,7 +109,7 @@ if (empty($share_key)) {
             </div>
             <nav class="nav">
                 <a href="index.php" class="btn btn-outline" title="Home">
-                    <i class="fas fa-home"></i>
+                    <i class="fas fa-home"></i> Home
                 </a>
                 <?php if (isLoggedIn()): ?>
                     <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
@@ -137,7 +140,7 @@ if (empty($share_key)) {
     <main class="container">
         <?php if ($error): ?>
             <div class="auth-form glassmorphism">
-                <h2>Error</h2>
+                <h2><i class="fas fa-exclamation-circle"></i> Error</h2>
                 <div class="alert alert-error"><?php echo $error; ?></div>
                 <p class="text-center">
                     <a href="index.php" class="btn btn-primary"><i class="fas fa-home"></i> Back to Home</a>
@@ -145,8 +148,8 @@ if (empty($share_key)) {
             </div>
         <?php elseif ($show_password_form): ?>
             <div class="auth-form glassmorphism">
-                <h2>Password Protected Share</h2>
-                <p>This private share is protected with a password.</p>
+                <h2><i class="fas fa-lock"></i> Password Protected Share</h2>
+                <p>This private share is protected with a password. Enter the password to access the content.</p>
                 
                 <?php if ($error): ?>
                     <div class="alert alert-error"><?php echo $error; ?></div>
@@ -163,7 +166,9 @@ if (empty($share_key)) {
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Unlock</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-unlock"></i> Unlock Content
+                    </button>
                 </form>
                 
                 <p class="text-center">
@@ -172,8 +177,8 @@ if (empty($share_key)) {
             </div>
         <?php elseif ($show_access_code_form): ?>
             <div class="auth-form glassmorphism">
-                <h2>Protected Share</h2>
-                <p>This protected share requires a 4-character access code.</p>
+                <h2><i class="fas fa-shield-alt"></i> Protected Share</h2>
+                <p>This protected share requires a 4-character access code. Enter the code to access the content.</p>
                 
                 <?php if ($error): ?>
                     <div class="alert alert-error"><?php echo $error; ?></div>
@@ -182,10 +187,12 @@ if (empty($share_key)) {
                 <form method="POST" action="">
                     <div class="form-group">
                         <label for="access_code">Access Code</label>
-                        <input type="text" id="access_code" name="access_code" maxlength="4" placeholder="XXXX" required style="text-transform: uppercase; letter-spacing: 5px; font-family: monospace; text-align: center;">
+                        <input type="text" id="access_code" name="access_code" maxlength="4" placeholder="XXXX" required style="text-transform: uppercase; letter-spacing: 8px; font-family: monospace; text-align: center; font-size: 1.5rem;">
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Access Content</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-key"></i> Access Content
+                    </button>
                 </form>
                 
                 <p class="text-center">
@@ -224,9 +231,14 @@ if (empty($share_key)) {
                     <div class="share-content file-share">
                         <p><i class="fas fa-file"></i> <?php echo htmlspecialchars($share['file_name']); ?></p>
                         <p>Size: <?php echo formatFileSize($share['file_size']); ?></p>
-                        <a href="<?php echo htmlspecialchars($share['file_path']); ?>" class="btn btn-download" download>
-                            <i class="fas fa-download"></i> Download File
-                        </a>
+                        <div class="btn-group">
+                            <a href="<?php echo htmlspecialchars($share['file_path']); ?>" class="btn btn-download" download>
+                                <i class="fas fa-download"></i> Download File
+                            </a>
+                            <button class="btn btn-copy" onclick="copyToClipboard('<?php echo htmlspecialchars($share['file_path']); ?>')">
+                                <i class="fas fa-copy"></i> Copy File URL
+                            </button>
+                        </div>
                     </div>
                 <?php endif; ?>
                 
@@ -234,8 +246,17 @@ if (empty($share_key)) {
                     <button class="btn btn-copy" onclick="copyToClipboard(window.location.href)">
                         <i class="fas fa-copy"></i> Copy Link
                     </button>
-                    <button class="btn btn-print" onclick="window.print()">
+                    <button class="btn btn-print" onclick="enhancedPrint()">
                         <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn btn-facebook" onclick="shareToFacebook()">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </button>
+                    <button class="btn btn-twitter" onclick="shareToTwitter()">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </button>
+                    <button class="btn btn-linkedin" onclick="shareToLinkedIn()">
+                        <i class="fab fa-linkedin-in"></i> LinkedIn
                     </button>
                     <button class="btn btn-report" onclick="document.getElementById('report-modal').style.display='block'">
                         <i class="fas fa-flag"></i> Report
@@ -251,14 +272,16 @@ if (empty($share_key)) {
             <div id="report-modal" class="modal">
                 <div class="modal-content glassmorphism">
                     <span class="close" onclick="document.getElementById('report-modal').style.display='none'">&times;</span>
-                    <h2>Report Share</h2>
+                    <h2><i class="fas fa-flag"></i> Report Share</h2>
                     <form method="POST" action="report.php">
                         <input type="hidden" name="share_id" value="<?php echo $share['id']; ?>">
                         <div class="form-group">
                             <label for="reason">Reason for reporting:</label>
-                            <textarea id="reason" name="reason" rows="5" required></textarea>
+                            <textarea id="reason" name="reason" rows="5" required placeholder="Please describe why you are reporting this content..."></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Submit Report</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Submit Report
+                        </button>
                     </form>
                 </div>
             </div>
@@ -294,6 +317,14 @@ if (empty($share_key)) {
                         <p>To access this content, you need to <?php 
                             echo $share['visibility'] === 'private' ? 'enter the password' : 'enter the access code'; 
                         ?> provided by the creator.</p>
+                        <div class="btn-group">
+                            <a href="index.php" class="btn btn-primary">
+                                <i class="fas fa-home"></i> Back to Home
+                            </a>
+                            <button class="btn btn-outline" onclick="window.location.reload()">
+                                <i class="fas fa-redo"></i> Refresh Page
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
@@ -310,39 +341,107 @@ if (empty($share_key)) {
             <div class="footer-content">
                 <div class="footer-section">
                     <h3><?php echo SITE_NAME; ?></h3>
-                    <p>Share anything securely and anonymously</p>
+                    <p>Share anything securely and anonymously with our modern platform designed for privacy and ease of use.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode(SITE_URL); ?>" target="_blank" class="btn-facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode(SITE_URL); ?>&text=Check out <?php echo SITE_NAME; ?> for anonymous sharing" target="_blank" class="btn-twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/shareArticle?mini=true&url=<?php echo urlencode(SITE_URL); ?>" target="_blank" class="btn-linkedin">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="index.php">Home</a></li>
-                        <li><a href="latest.php">Latest Shares</a></li>
-                        <li><a href="shares.php">Public Shares</a></li>
-                        <li><a href="share-text.php">Share Text</a></li>
-                        <li><a href="share-code.php">Share Code</a></li>
-                        <li><a href="share-file.php">Share File</a></li>
+                        <li><a href="index.php"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="latest.php"><i class="fas fa-chevron-right"></i> Latest Shares</a></li>
+                        <li><a href="shares.php"><i class="fas fa-chevron-right"></i> Public Shares</a></li>
+                        <li><a href="share-text.php"><i class="fas fa-chevron-right"></i> Share Text</a></li>
+                        <li><a href="share-code.php"><i class="fas fa-chevron-right"></i> Share Code</a></li>
+                        <li><a href="share-file.php"><i class="fas fa-chevron-right"></i> Share File</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Developer</h4>
                     <p>Zahid Hasan Tonmoy</p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/zahidhasantonmoybd" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.linkedin.com/in/zahidhasantonmoy/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://github.com/zahidhasantonmoy" target="_blank"><i class="fab fa-github"></i></a>
-                        <a href="https://zahidhasantonmoy.vercel.app" target="_blank"><i class="fas fa-globe"></i></a>
-                    </div>
+                    <ul>
+                        <li><a href="https://www.facebook.com/zahidhasantonmoybd" target="_blank"><i class="fab fa-facebook-f"></i> Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/zahidhasantonmoy/" target="_blank"><i class="fab fa-linkedin-in"></i> LinkedIn</a></li>
+                        <li><a href="https://github.com/zahidhasantonmoy" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                        <li><a href="https://zahidhasantonmoy.vercel.app" target="_blank"><i class="fas fa-globe"></i> Portfolio</a></li>
+                    </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
+                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved. | Designed with <i class="fas fa-heart" style="color: #ff6584;"></i> for privacy</p>
             </div>
         </div>
     </footer>
 
-    <script src="assets/js/main.js"></script>
+    <script src="assets/js/modern-main.js"></script>
+    <script>
+        // Social sharing functions
+        function shareToFacebook() {
+            const url = encodeURIComponent(window.location.href);
+            const title = encodeURIComponent(document.title);
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}&t=${title}`, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToTwitter() {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(document.title);
+            window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToLinkedIn() {
+            const url = encodeURIComponent(window.location.href);
+            const title = encodeURIComponent(document.title);
+            window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${url}&title=${title}`, '_blank', 'width=600,height=400');
+        }
+        
+        // Enhanced print function
+        function enhancedPrint() {
+            // Add print-specific styles
+            const printStyle = document.createElement('style');
+            printStyle.innerHTML = `
+                @media print {
+                    .header, .nav, .footer, .share-actions, .btn, .visibility-badge {
+                        display: none !important;
+                    }
+                    .share-content {
+                        border: none !important;
+                        box-shadow: none !important;
+                        background: white !important;
+                        color: black !important;
+                    }
+                    body {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .auth-form {
+                        box-shadow: none !important;
+                        border: none !important;
+                    }
+                }
+            `;
+            document.head.appendChild(printStyle);
+            
+            // Print after a short delay to ensure styles are applied
+            setTimeout(() => {
+                window.print();
+                // Remove print styles after printing
+                setTimeout(() => {
+                    document.head.removeChild(printStyle);
+                }, 1000);
+            }, 100);
+        }
+    </script>
 </body>
 </html>

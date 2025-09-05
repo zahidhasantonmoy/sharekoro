@@ -48,7 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Insert share with visibility settings
             $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, 'text', ?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
+            
+            // Fix the parameter count issue by ensuring all parameters are provided
+            $result = $stmt->execute([
                 $share_key,
                 $title,
                 $content,
@@ -60,14 +62,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $access_code
             ]);
             
-            $share_id = $pdo->lastInsertId();
-            
-            // Success
-            $share_link = SITE_URL . '/view.php?key=' . $share_key;
-            $success = 'Text shared successfully!';
+            if ($result) {
+                $share_id = $pdo->lastInsertId();
+                
+                // Success
+                $share_link = SITE_URL . '/view.php?key=' . $share_key;
+                $success = 'Text shared successfully!';
+            } else {
+                $error = 'Failed to share text. Please try again.';
+            }
         } catch (PDOException $e) {
             $error = 'Failed to share text. Please try again.';
             error_log("Text share error: " . $e->getMessage());
+        } catch (Exception $e) {
+            $error = 'An unexpected error occurred. Please try again.';
+            error_log("Text share exception: " . $e->getMessage());
         }
     }
 }
@@ -79,8 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Share Text - <?php echo SITE_NAME; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/modern-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Header -->
@@ -91,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <nav class="nav">
                 <a href="index.php" class="btn btn-outline" title="Home">
-                    <i class="fas fa-home"></i>
+                    <i class="fas fa-home"></i> Home
                 </a>
                 <?php if (isLoggedIn()): ?>
                     <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
@@ -121,15 +133,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Main Content -->
     <main class="container">
         <div class="auth-form glassmorphism">
-            <h2>Share Text</h2>
+            <h2><i class="fas fa-font"></i> Share Text</h2>
             
             <?php if ($error): ?>
-                <div class="alert alert-error"><?php echo $error; ?></div>
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> <?php echo $error; ?>
+                </div>
             <?php endif; ?>
             
             <?php if ($success): ?>
                 <div class="alert alert-success">
-                    <?php echo $success; ?>
+                    <i class="fas fa-check-circle"></i> <?php echo $success; ?>
                     <div class="form-group">
                         <label for="share_link">Share Link:</label>
                         <div class="input-group">
@@ -139,11 +153,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </button>
                         </div>
                     </div>
-                    <p class="text-center">
+                    <div class="btn-group">
                         <a href="<?php echo $share_link; ?>" target="_blank" class="btn btn-primary">
                             <i class="fas fa-external-link-alt"></i> View Share
                         </a>
-                    </p>
+                        <button class="btn btn-facebook" onclick="shareToFacebook('<?php echo $share_link; ?>')">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </button>
+                        <button class="btn btn-twitter" onclick="shareToTwitter('<?php echo $share_link; ?>', '<?php echo htmlspecialchars($title); ?>')">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </button>
+                        <button class="btn btn-linkedin" onclick="shareToLinkedIn('<?php echo $share_link; ?>', '<?php echo htmlspecialchars($title); ?>')">
+                            <i class="fab fa-linkedin-in"></i> LinkedIn
+                        </button>
+                    </div>
                 </div>
             <?php endif; ?>
             
@@ -151,74 +174,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST" action="">
                     <div class="form-group">
                         <label for="title">Title (Optional)</label>
-                        <input type="text" id="title" name="title">
+                        <input type="text" id="title" name="title" placeholder="Enter a title for your text">
                     </div>
                     
                     <div class="form-group">
                         <label for="content">Content *</label>
-                        <textarea id="content" name="content" rows="10" required></textarea>
+                        <textarea id="content" name="content" rows="10" required placeholder="Enter your text content here..."></textarea>
                     </div>
                     
                     <div class="form-group">
                         <label for="visibility">Visibility</label>
-                        <select id="visibility" name="visibility" onchange="toggleVisibilityOptions()">
+                        <select id="visibility" name="visibility">
                             <option value="public">Public - Visible to everyone</option>
                             <option value="private">Private - Password required</option>
                             <option value="protected">Protected - 4-digit code required</option>
                         </select>
                     </div>
                     
-                    <div class="form-group visibility-option private-option" style="display: none;">
-                        <label for="password">Password Protection</label>
-                        <div class="input-group">
-                            <input type="password" id="password" name="password" placeholder="Enter password for private access">
-                            <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
-                                <i class="fas fa-eye" id="password_icon"></i>
-                            </span>
+                    <div class="visibility-option private-option" style="display: none;">
+                        <h4><i class="fas fa-lock"></i> Password Protection</h4>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <div class="input-group">
+                                <input type="password" id="password" name="password" placeholder="Enter password for private access">
+                                <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
+                                    <i class="fas fa-eye" id="password_icon"></i>
+                                </span>
+                            </div>
+                            <small class="form-text">Users must enter this password to view content</small>
                         </div>
-                        <small class="form-text">Users must enter this password to view content</small>
                     </div>
                     
-                    <div class="form-group visibility-option protected-option" style="display: none;">
-                        <label>Access Code</label>
-                        <div class="input-group">
-                            <input type="text" id="access_code" name="access_code" placeholder="Auto-generated" readonly>
-                            <span class="input-group-addon" onclick="generateAccessCode()">
-                                <i class="fas fa-sync"></i>
-                            </span>
+                    <div class="visibility-option protected-option" style="display: none;">
+                        <h4><i class="fas fa-shield-alt"></i> Access Code Protection</h4>
+                        <div class="form-group">
+                            <label>Access Code</label>
+                            <div class="input-group">
+                                <input type="text" id="access_code" name="access_code" placeholder="Auto-generated" readonly>
+                                <span class="input-group-addon" onclick="generateAccessCode()">
+                                    <i class="fas fa-sync"></i>
+                                </span>
+                            </div>
+                            <small class="form-text">Users must enter this 4-character code to view content</small>
                         </div>
-                        <small class="form-text">Users must enter this 4-character code to view content</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="visibility">Visibility</label>
-                        <select id="visibility" name="visibility" onchange="toggleVisibilityOptions()">
-                            <option value="public">Public - Visible to everyone</option>
-                            <option value="private">Private - Password required</option>
-                            <option value="protected">Protected - 4-digit code required</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group visibility-option private-option" style="display: none;">
-                        <label for="password">Password Protection</label>
-                        <div class="input-group">
-                            <input type="password" id="password" name="password" placeholder="Enter password for private access">
-                            <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
-                                <i class="fas fa-eye" id="password_icon"></i>
-                            </span>
-                        </div>
-                        <small class="form-text">Users must enter this password to view content</small>
-                    </div>
-                    
-                    <div class="form-group visibility-option protected-option" style="display: none;">
-                        <label>Access Code</label>
-                        <div class="input-group">
-                            <input type="text" id="access_code" name="access_code" placeholder="Auto-generated" readonly>
-                            <span class="input-group-addon" onclick="generateAccessCode()">
-                                <i class="fas fa-sync"></i>
-                            </span>
-                        </div>
-                        <small class="form-text">Users must enter this 4-character code to view content</small>
                     </div>
                     
                     <div class="form-group">
@@ -237,7 +235,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </label>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">Share Text</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-share-alt"></i> Share Text
+                    </button>
                 </form>
             <?php endif; ?>
             
@@ -253,40 +253,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="footer-content">
                 <div class="footer-section">
                     <h3><?php echo SITE_NAME; ?></h3>
-                    <p>Share anything securely and anonymously</p>
+                    <p>Share anything securely and anonymously with our modern platform designed for privacy and ease of use.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode(SITE_URL); ?>" target="_blank" class="btn-facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode(SITE_URL); ?>&text=Check out <?php echo SITE_NAME; ?> for anonymous sharing" target="_blank" class="btn-twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/shareArticle?mini=true&url=<?php echo urlencode(SITE_URL); ?>" target="_blank" class="btn-linkedin">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="index.php">Home</a></li>
-                        <li><a href="latest.php">Latest Shares</a></li>
-                        <li><a href="shares.php">Public Shares</a></li>
-                        <li><a href="share-text.php">Share Text</a></li>
-                        <li><a href="share-code.php">Share Code</a></li>
-                        <li><a href="share-file.php">Share File</a></li>
+                        <li><a href="index.php"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="latest.php"><i class="fas fa-chevron-right"></i> Latest Shares</a></li>
+                        <li><a href="shares.php"><i class="fas fa-chevron-right"></i> Public Shares</a></li>
+                        <li><a href="share-text.php"><i class="fas fa-chevron-right"></i> Share Text</a></li>
+                        <li><a href="share-code.php"><i class="fas fa-chevron-right"></i> Share Code</a></li>
+                        <li><a href="share-file.php"><i class="fas fa-chevron-right"></i> Share File</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Developer</h4>
                     <p>Zahid Hasan Tonmoy</p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/zahidhasantonmoybd" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.linkedin.com/in/zahidhasantonmoy/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://github.com/zahidhasantonmoy" target="_blank"><i class="fab fa-github"></i></a>
-                        <a href="https://zahidhasantonmoy.vercel.app" target="_blank"><i class="fas fa-globe"></i></a>
-                    </div>
+                    <ul>
+                        <li><a href="https://www.facebook.com/zahidhasantonmoybd" target="_blank"><i class="fab fa-facebook-f"></i> Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/zahidhasantonmoy/" target="_blank"><i class="fab fa-linkedin-in"></i> LinkedIn</a></li>
+                        <li><a href="https://github.com/zahidhasantonmoy" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                        <li><a href="https://zahidhasantonmoy.vercel.app" target="_blank"><i class="fas fa-globe"></i> Portfolio</a></li>
+                    </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
+                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved. | Designed with <i class="fas fa-heart" style="color: #ff6584;"></i> for privacy</p>
             </div>
         </div>
     </footer>
 
-    <script src="assets/js/main.js"></script>
+    <script src="assets/js/modern-main.js"></script>
     <script>
         // Toggle visibility options based on selection
         function toggleVisibilityOptions() {
@@ -294,7 +305,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const privateOption = document.querySelector('.private-option');
             const protectedOption = document.querySelector('.protected-option');
             const isPublicCheckbox = document.getElementById('is_public');
-            const accessCodeInput = document.getElementById('access_code');
             
             // Hide all options first
             privateOption.style.display = 'none';
@@ -324,12 +334,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             document.getElementById('access_code').value = code;
+            showNotification('Access code generated: ' + code);
         }
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            toggleVisibilityOptions();
+            const visibilitySelect = document.getElementById('visibility');
+            if (visibilitySelect) {
+                visibilitySelect.addEventListener('change', toggleVisibilityOptions);
+                toggleVisibilityOptions(); // Initialize on load
+            }
         });
+        
+        // Social sharing functions
+        function shareToFacebook(url) {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToTwitter(url, title) {
+            const text = title ? encodeURIComponent(title) : encodeURIComponent('Check out this text share');
+            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${text}`, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToLinkedIn(url, title) {
+            const text = title ? encodeURIComponent(title) : '';
+            window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${text}`, '_blank', 'width=600,height=400');
+        }
     </script>
 </body>
 </html>
