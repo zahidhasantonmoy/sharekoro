@@ -199,23 +199,35 @@ body {
   transition: var(--transition);
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .share-option:hover {
-  background: rgba(108, 99, 255, 0.2);
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
   border-color: var(--primary-color);
   transform: translateY(-10px);
-  box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+  box-shadow: 0 15px 30px rgba(108, 99, 255, 0.4);
 }
 
 .share-option i {
   color: var(--primary-color);
+  font-size: 2rem;
+}
+
+.share-option:hover i {
+  color: white;
+  transform: scale(1.2);
 }
 
 .share-option span {
   font-weight: 600;
   color: #ffffff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.share-option:hover span {
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hero-info {

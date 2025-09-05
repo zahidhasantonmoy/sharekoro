@@ -113,5 +113,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </p>
         </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><?php echo SITE_NAME; ?></h3>
+                    <p>Share anything securely and anonymously</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.php">Home</a></li>
+                        <li><a href="latest.php">Latest Shares</a></li>
+                        <li><a href="shares.php">Public Shares</a></li>
+                        <li><a href="share-text.php">Share Text</a></li>
+                        <li><a href="share-code.php">Share Code</a></li>
+                        <li><a href="share-file.php">Share File</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Developer</h4>
+                    <p>Zahid Hasan Tonmoy</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/zahidhasantonmoybd" target="_blank"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.linkedin.com/in/zahidhasantonmoy/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="https://github.com/zahidhasantonmoy" target="_blank"><i class="fab fa-github"></i></a>
+                        <a href="https://zahidhasantonmoy.vercel.app" target="_blank"><i class="fas fa-globe"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
 </body>
 </html>

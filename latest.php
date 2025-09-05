@@ -1,57 +1,23 @@
 <?php
-// register.php - User registration page
+// latest.php - Display latest shares
 
 require_once 'init.php';
 
-// Redirect if already logged in
-if (isLoggedIn()) {
-    redirect('index.php');
-}
-
 $error = '';
-$success = '';
+$shares = [];
+$limit = 15;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = sanitizeInput($_POST['username']);
-    $email = sanitizeInput($_POST['email']);
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
-
-    // Validation
-    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        $error = 'All fields are required.';
-    } elseif (strlen($username) < 3) {
-        $error = 'Username must be at least 3 characters long.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Invalid email format.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters long.';
-    } elseif ($password !== $confirm_password) {
-        $error = 'Passwords do not match.';
-    } else {
-        try {
-            $db = new Database();
-            $pdo = $db->getConnection();
-
-            // Check if username or email already exists
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-            $stmt->execute([$username, $email]);
-            
-            if ($stmt->rowCount() > 0) {
-                $error = 'Username or email already exists.';
-            } else {
-                // Register user
-                $hashedPassword = hashPassword($password);
-                $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-                $stmt->execute([$username, $email, $hashedPassword]);
-                
-                $success = 'Registration successful! You can now log in.';
-            }
-        } catch (PDOException $e) {
-            $error = 'Registration failed. Please try again.';
-            error_log("Registration error: " . $e->getMessage());
-        }
-    }
+try {
+    $db = new Database();
+    $pdo = $db->getConnection();
+    
+    // Get latest public shares
+    $stmt = $pdo->prepare("SELECT s.*, u.username FROM shares s LEFT JOIN users u ON s.created_by = u.id WHERE s.is_public = 1 AND (s.expiration_date IS NULL OR s.expiration_date > NOW()) ORDER BY s.created_at DESC LIMIT ?");
+    $stmt->execute([$limit]);
+    $shares = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $error = 'Failed to retrieve latest shares. Please try again.';
+    error_log("Latest shares page error: " . $e->getMessage());
 }
 ?>
 
@@ -60,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - <?php echo SITE_NAME; ?></title>
+    <title>Latest Shares - <?php echo SITE_NAME; ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -90,47 +56,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </header>
 
-    <div class="container">
+    <!-- Main Content -->
+    <main class="container">
         <div class="auth-form glassmorphism">
-            <h2>Create Account</h2>
+            <h2>Latest Shares</h2>
+            <p>Recently shared content from the community</p>
             
             <?php if ($error): ?>
                 <div class="alert alert-error"><?php echo $error; ?></div>
             <?php endif; ?>
             
-            <?php if ($success): ?>
-                <div class="alert alert-success"><?php echo $success; ?></div>
+            <?php if (count($shares) > 0): ?>
+                <div class="shares-list">
+                    <?php foreach ($shares as $share): ?>
+                        <div class="share-item glassmorphism">
+                            <div class="share-info">
+                                <h4><?php echo htmlspecialchars($share['title'] ?? 'Untitled'); ?></h4>
+                                <p class="share-meta">
+                                    <span>
+                                        <i class="fas fa-<?php 
+                                            echo $share['share_type'] === 'text' ? 'font' : 
+                                                ($share['share_type'] === 'code' ? 'code' : 'file'); 
+                                        ?>"></i> 
+                                        <?php echo ucfirst($share['share_type']); ?>
+                                    </span>
+                                    <?php if ($share['created_by']): ?>
+                                        <span><i class="fas fa-user"></i> <?php echo htmlspecialchars($share['username']); ?></span>
+                                    <?php else: ?>
+                                        <span><i class="fas fa-user-secret"></i> Anonymous</span>
+                                    <?php endif; ?>
+                                    <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y', strtotime($share['created_at'])); ?></span>
+                                    <span><i class="fas fa-eye"></i> <?php echo $share['view_count']; ?> views</span>
+                                </p>
+                            </div>
+                            <div class="share-actions">
+                                <a href="view.php?key=<?php echo $share['share_key']; ?>" class="btn btn-secondary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-info">
+                    <p>No shares found yet.</p>
+                    <p class="text-center">
+                        <a href="share-text.php" class="btn btn-primary">Share Text</a>
+                        <a href="share-code.php" class="btn btn-primary">Share Code</a>
+                        <a href="share-file.php" class="btn btn-primary">Share File</a>
+                    </p>
+                </div>
             <?php endif; ?>
             
-            <form method="POST" action="">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm_password">Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
-                </div>
-                
-                <button type="submit" class="btn btn-primary">Register</button>
-            </form>
-            
             <p class="text-center">
-                Already have an account? <a href="login.php">Login here</a>
+                <a href="index.php"><i class="fas fa-arrow-left"></i> Back to Home</a>
             </p>
         </div>
-    </div>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">

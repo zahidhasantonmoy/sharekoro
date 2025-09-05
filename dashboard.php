@@ -136,6 +136,7 @@ try {
                     <h4>Quick Links</h4>
                     <ul>
                         <li><a href="index.php">Home</a></li>
+                        <li><a href="latest.php">Latest Shares</a></li>
                         <li><a href="shares.php">Public Shares</a></li>
                         <li><a href="share-text.php">Share Text</a></li>
                         <li><a href="share-code.php">Share Code</a></li>
