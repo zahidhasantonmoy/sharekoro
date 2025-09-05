@@ -57,8 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - <?php echo SITE_NAME; ?></title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/modern-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Header -->
@@ -69,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <nav class="nav">
                 <a href="index.php" class="btn btn-outline" title="Home">
-                    <i class="fas fa-home"></i>
+                    <i class="fas fa-home"></i> Home
                 </a>
                 <?php if (isLoggedIn()): ?>
                     <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
@@ -98,24 +101,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="container">
         <div class="auth-form glassmorphism">
-            <h2>Login to Your Account</h2>
+            <h2><i class="fas fa-sign-in-alt"></i> Login to Your Account</h2>
             
             <?php if ($error): ?>
-                <div class="alert alert-error"><?php echo $error; ?></div>
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i> <?php echo $error; ?>
+                </div>
             <?php endif; ?>
             
             <form method="POST" action="">
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email address">
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
+                    <div class="input-group">
+                        <input type="password" id="password" name="password" required placeholder="Enter your password">
+                        <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
+                            <i class="fas fa-eye" id="password_icon"></i>
+                        </span>
+                    </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
             </form>
             
             <p class="text-center">
@@ -130,39 +142,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="footer-content">
                 <div class="footer-section">
                     <h3><?php echo SITE_NAME; ?></h3>
-                    <p>Share anything securely and anonymously</p>
+                    <p>Share anything securely and anonymously with our modern platform designed for privacy and ease of use.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=<?php echo urlencode(SITE_URL); ?>" target="_blank" class="btn-facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url=<?php echo urlencode(SITE_URL); ?>&text=Check out <?php echo SITE_NAME; ?> for anonymous sharing" target="_blank" class="btn-twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/shareArticle?mini=true&url=<?php echo urlencode(SITE_URL); ?>" target="_blank" class="btn-linkedin">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="index.php">Home</a></li>
-                        <li><a href="latest.php">Latest Shares</a></li>
-                        <li><a href="shares.php">Public Shares</a></li>
-                        <li><a href="share-text.php">Share Text</a></li>
-                        <li><a href="share-code.php">Share Code</a></li>
-                        <li><a href="share-file.php">Share File</a></li>
+                        <li><a href="index.php"><i class="fas fa-chevron-right"></i> Home</a></li>
+                        <li><a href="latest.php"><i class="fas fa-chevron-right"></i> Latest Shares</a></li>
+                        <li><a href="shares.php"><i class="fas fa-chevron-right"></i> Public Shares</a></li>
+                        <li><a href="share-text.php"><i class="fas fa-chevron-right"></i> Share Text</a></li>
+                        <li><a href="share-code.php"><i class="fas fa-chevron-right"></i> Share Code</a></li>
+                        <li><a href="share-file.php"><i class="fas fa-chevron-right"></i> Share File</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h4>Developer</h4>
                     <p>Zahid Hasan Tonmoy</p>
-                    <div class="social-links">
-                        <a href="https://www.facebook.com/zahidhasantonmoybd" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                        <a href="https://www.linkedin.com/in/zahidhasantonmoy/" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="https://github.com/zahidhasantonmoy" target="_blank"><i class="fab fa-github"></i></a>
-                        <a href="https://zahidhasantonmoy.vercel.app" target="_blank"><i class="fas fa-globe"></i></a>
-                    </div>
+                    <ul>
+                        <li><a href="https://www.facebook.com/zahidhasantonmoybd" target="_blank"><i class="fab fa-facebook-f"></i> Facebook</a></li>
+                        <li><a href="https://www.linkedin.com/in/zahidhasantonmoy/" target="_blank"><i class="fab fa-linkedin-in"></i> LinkedIn</a></li>
+                        <li><a href="https://github.com/zahidhasantonmoy" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                        <li><a href="https://zahidhasantonmoy.vercel.app" target="_blank"><i class="fas fa-globe"></i> Portfolio</a></li>
+                    </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved.</p>
+                <p>&copy; <?php echo date('Y'); ?> <?php echo SITE_NAME; ?>. All rights reserved. | Designed with <i class="fas fa-heart" style="color: #ff6584;"></i> for privacy</p>
             </div>
         </div>
     </footer>
 
-    <script src="assets/js/main.js"></script>
+    <script src="assets/js/modern-main.js"></script>
 </body>
 </html>
