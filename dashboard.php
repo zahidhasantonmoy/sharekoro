@@ -158,12 +158,12 @@ try {
                                             echo $share['visibility'] === 'public' ? 'globe' : 
                                                  ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
                                         ?>"></i> 
-                                        <?php echo ucfirst($share['visibility']); ?>
+                                        <?php echo ucfirst($share['visibility'] ?? ''); ?>
                                     </span>
                                     <span><i class="fas fa-<?php 
                                         echo $share['share_type'] === 'text' ? 'font' : 
                                             ($share['share_type'] === 'code' ? 'code' : 'file'); 
-                                    ?>"></i> <?php echo ucfirst($share['share_type']); ?></span>
+                                    ?>"></i> <?php echo ucfirst($share['share_type'] ?? ''); ?></span>
                                     <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y', strtotime($share['created_at'])); ?></span>
                                     <span><i class="fas fa-eye"></i> <?php echo $share['view_count']; ?> views</span>
                                 </p>

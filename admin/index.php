@@ -149,7 +149,7 @@ try {
                                         </p>
                                     </div>
                                     <div class="admin-item-meta">
-                                        <span><?php echo ucfirst($share['share_type']); ?></span>
+                                        <span><?php echo ucfirst($share['share_type'] ?? ''); ?></span>
                                         <span><?php echo date('M j, Y', strtotime($share['created_at'])); ?></span>
                                     </div>
                                 </div>

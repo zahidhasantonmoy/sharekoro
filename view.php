@@ -214,7 +214,7 @@ if (empty($share_key)) {
                                 echo $share['visibility'] === 'public' ? 'globe' : 
                                      ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
                             ?>"></i> 
-                            <?php echo ucfirst($share['visibility']); ?>
+                            <?php echo ucfirst($share['visibility'] ?? ''); ?>
                         </span>
                     </div>
                 </div>
@@ -300,7 +300,7 @@ if (empty($share_key)) {
                                 echo $share['visibility'] === 'public' ? 'globe' : 
                                      ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
                             ?>"></i> 
-                            <?php echo ucfirst($share['visibility']); ?>
+                            <?php echo ucfirst($share['visibility'] ?? ''); ?>
                         </span>
                     </div>
                 </div>

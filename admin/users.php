@@ -105,7 +105,7 @@ try {
                                 <p><?php echo htmlspecialchars($user['email']); ?></p>
                             </div>
                             <div class="admin-item-meta">
-                                <span class="role <?php echo $user['role']; ?>"><?php echo ucfirst($user['role']); ?></span>
+                                <span class="role <?php echo $user['role']; ?>"><?php echo ucfirst($user['role'] ?? ''); ?></span>
                                 <span><?php echo date('M j, Y', strtotime($user['created_at'])); ?></span>
                             </div>
                             <div class="admin-item-actions">

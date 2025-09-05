@@ -93,14 +93,14 @@ try {
                                             echo $share['visibility'] === 'public' ? 'globe' : 
                                                  ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
                                         ?>"></i> 
-                                        <?php echo ucfirst($share['visibility']); ?>
+                                        <?php echo ucfirst($share['visibility'] ?? ''); ?>
                                     </span>
                                     <span>
                                         <i class="fas fa-<?php 
                                             echo $share['share_type'] === 'text' ? 'font' : 
                                                 ($share['share_type'] === 'code' ? 'code' : 'file'); 
                                         ?>"></i> 
-                                        <?php echo ucfirst($share['share_type']); ?>
+                                        <?php echo ucfirst($share['share_type'] ?? ''); ?>
                                     </span>
                                     <?php if ($share['created_by']): ?>
                                         <span><i class="fas fa-user"></i> <?php echo htmlspecialchars($share['username']); ?></span>

@@ -123,7 +123,7 @@ try {
                                 <p class="reporter">Reported by: <?php echo htmlspecialchars($report['reporter_ip']); ?></p>
                             </div>
                             <div class="admin-item-meta">
-                                <span class="status <?php echo $report['status']; ?>"><?php echo ucfirst($report['status']); ?></span>
+                                <span class="status <?php echo $report['status']; ?>"><?php echo ucfirst($report['status'] ?? ''); ?></span>
                                 <span><?php echo date('M j, Y', strtotime($report['created_at'])); ?></span>
                             </div>
                             <div class="admin-item-actions">
