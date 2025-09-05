@@ -191,6 +191,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     
                     <div class="form-group">
+                        <label for="visibility">Visibility</label>
+                        <select id="visibility" name="visibility" onchange="toggleVisibilityOptions()">
+                            <option value="public">Public - Visible to everyone</option>
+                            <option value="private">Private - Password required</option>
+                            <option value="protected">Protected - 4-digit code required</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group visibility-option private-option" style="display: none;">
+                        <label for="password">Password Protection</label>
+                        <div class="input-group">
+                            <input type="password" id="password" name="password" placeholder="Enter password for private access">
+                            <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
+                                <i class="fas fa-eye" id="password_icon"></i>
+                            </span>
+                        </div>
+                        <small class="form-text">Users must enter this password to view content</small>
+                    </div>
+                    
+                    <div class="form-group visibility-option protected-option" style="display: none;">
+                        <label>Access Code</label>
+                        <div class="input-group">
+                            <input type="text" id="access_code" name="access_code" placeholder="Auto-generated" readonly>
+                            <span class="input-group-addon" onclick="generateAccessCode()">
+                                <i class="fas fa-sync"></i>
+                            </span>
+                        </div>
+                        <small class="form-text">Users must enter this 4-character code to view content</small>
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="expiration">Expiration</label>
                         <select id="expiration" name="expiration">
                             <?php foreach (EXPIRATION_OPTIONS as $key => $value): ?>
