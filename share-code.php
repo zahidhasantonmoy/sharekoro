@@ -12,12 +12,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $content = $_POST['content'];
     $language = sanitizeInput($_POST['language']);
     $expiration = sanitizeInput($_POST['expiration']);
+    $visibility = sanitizeInput($_POST['visibility']);
     $password = $_POST['password'];
+    $access_code = isset($_POST['access_code']) ? sanitizeInput($_POST['access_code']) : null;
     $is_public = isset($_POST['is_public']) ? 1 : 0;
     
     // Validation
     if (empty($content)) {
         $error = 'Code content is required.';
+    } elseif ($visibility === 'private' && empty($password)) {
+        $error = 'Password is required for private shares.';
+    } elseif ($visibility === 'protected' && empty($access_code)) {
+        $error = 'Access code is required for protected shares.';
     } else {
         try {
             $db = new Database();
@@ -36,8 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Hash password if provided
             $hashed_password = !empty($password) ? hashPassword($password) : null;
             
-            // Insert share
-            $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, password_protect) VALUES (?, ?, ?, 'code', ?, ?, ?, ?)");
+            // Set is_public based on visibility
+            if ($visibility !== 'public') {
+                $is_public = 0;
+            }
+            
+            // Insert share with visibility settings
+            $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, 'code', ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $share_key,
                 $title,
@@ -45,7 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $expiration_date,
                 getCurrentUserId(),
                 $is_public,
-                $hashed_password
+                $visibility,
+                $hashed_password,
+                $access_code
             ]);
             
             $share_id = $pdo->lastInsertId();
@@ -167,6 +180,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     
                     <div class="form-group">
+                        <label for="visibility">Visibility</label>
+                        <select id="visibility" name="visibility" onchange="toggleVisibilityOptions()">
+                            <option value="public">Public - Visible to everyone</option>
+                            <option value="private">Private - Password required</option>
+                            <option value="protected">Protected - 4-digit code required</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group visibility-option private-option" style="display: none;">
+                        <label for="password">Password Protection</label>
+                        <div class="input-group">
+                            <input type="password" id="password" name="password" placeholder="Enter password for private access">
+                            <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
+                                <i class="fas fa-eye" id="password_icon"></i>
+                            </span>
+                        </div>
+                        <small class="form-text">Users must enter this password to view content</small>
+                    </div>
+                    
+                    <div class="form-group visibility-option protected-option" style="display: none;">
+                        <label>Access Code</label>
+                        <div class="input-group">
+                            <input type="text" id="access_code" name="access_code" placeholder="Auto-generated" readonly>
+                            <span class="input-group-addon" onclick="generateAccessCode()">
+                                <i class="fas fa-sync"></i>
+                            </span>
+                        </div>
+                        <small class="form-text">Users must enter this 4-character code to view content</small>
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="expiration">Expiration</label>
                         <select id="expiration" name="expiration">
                             <?php foreach (EXPIRATION_OPTIONS as $key => $value): ?>
@@ -176,18 +220,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     
                     <div class="form-group">
-                        <label for="password">Password Protection (Optional)</label>
-                        <div class="input-group">
-                            <input type="password" id="password" name="password">
-                            <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
-                                <i class="fas fa-eye" id="password_icon"></i>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" name="is_public" checked> 
+                            <input type="checkbox" name="is_public" id="is_public" checked> 
                             Make public (appears in recent shares)
                         </label>
                     </div>
@@ -242,5 +276,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </footer>
 
     <script src="assets/js/main.js"></script>
+    <script>
+        // Toggle visibility options based on selection
+        function toggleVisibilityOptions() {
+            const visibility = document.getElementById('visibility').value;
+            const privateOption = document.querySelector('.private-option');
+            const protectedOption = document.querySelector('.protected-option');
+            const isPublicCheckbox = document.getElementById('is_public');
+            const accessCodeInput = document.getElementById('access_code');
+            
+            // Hide all options first
+            privateOption.style.display = 'none';
+            protectedOption.style.display = 'none';
+            
+            // Show relevant option
+            if (visibility === 'private') {
+                privateOption.style.display = 'block';
+                isPublicCheckbox.checked = false;
+                isPublicCheckbox.disabled = true;
+            } else if (visibility === 'protected') {
+                protectedOption.style.display = 'block';
+                isPublicCheckbox.checked = false;
+                isPublicCheckbox.disabled = true;
+                generateAccessCode();
+            } else {
+                isPublicCheckbox.checked = true;
+                isPublicCheckbox.disabled = false;
+            }
+        }
+        
+        // Generate random 4-character access code
+        function generateAccessCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('access_code').value = code;
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleVisibilityOptions();
+        });
+    </script>
 </body>
 </html>

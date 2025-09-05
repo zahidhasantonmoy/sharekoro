@@ -113,6 +113,13 @@ try {
                             </div>
                             <div class="admin-item-meta">
                                 <span class="type <?php echo $share['share_type']; ?>"><?php echo ucfirst($share['share_type']); ?></span>
+                                <span class="visibility-badge <?php echo $share['visibility']; ?>">
+                                    <i class="fas fa-<?php 
+                                        echo $share['visibility'] === 'public' ? 'globe' : 
+                                             ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
+                                    ?>"></i> 
+                                    <?php echo ucfirst($share['visibility']); ?>
+                                </span>
                                 <span><?php echo date('M j, Y', strtotime($share['created_at'])); ?></span>
                                 <span><i class="fas fa-eye"></i> <?php echo $share['view_count']; ?></span>
                             </div>

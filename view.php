@@ -6,6 +6,9 @@ require_once 'init.php';
 $error = '';
 $share = null;
 $share_key = isset($_GET['key']) ? sanitizeInput($_GET['key']) : '';
+$show_password_form = false;
+$show_access_code_form = false;
+$show_protected_content = false;
 
 if (empty($share_key)) {
     $error = 'Invalid share key.';
@@ -26,28 +29,56 @@ if (empty($share_key)) {
             if ($share['expiration_date'] && new DateTime() > new DateTime($share['expiration_date'])) {
                 $error = 'This share has expired.';
             } 
-            // Check if share is password protected
-            else if (!empty($share['password_protect'])) {
-                if (!isset($_POST['password'])) {
-                    // Show password form
-                    $show_password_form = true;
-                } else {
-                    // Verify password
-                    if (verifyPassword($_POST['password'], $share['password_protect'])) {
-                        $show_password_form = false;
-                    } else {
-                        $error = 'Invalid password.';
-                        $show_password_form = true;
-                    }
+            // Handle visibility levels
+            else {
+                // Check visibility level
+                switch ($share['visibility']) {
+                    case 'private':
+                        // Private shares require password
+                        if (!isset($_POST['password'])) {
+                            // Show password form
+                            $show_password_form = true;
+                        } else {
+                            // Verify password
+                            if (verifyPassword($_POST['password'], $share['access_password'])) {
+                                $show_password_form = false;
+                                $show_protected_content = true;
+                            } else {
+                                $error = 'Invalid password.';
+                                $show_password_form = true;
+                            }
+                        }
+                        break;
+                        
+                    case 'protected':
+                        // Protected shares require access code
+                        if (!isset($_POST['access_code'])) {
+                            // Show access code form
+                            $show_access_code_form = true;
+                        } else {
+                            // Verify access code
+                            if ($_POST['access_code'] === $share['access_code']) {
+                                $show_access_code_form = false;
+                                $show_protected_content = true;
+                            } else {
+                                $error = 'Invalid access code.';
+                                $show_access_code_form = true;
+                            }
+                        }
+                        break;
+                        
+                    case 'public':
+                    default:
+                        // Public shares are always visible
+                        $show_protected_content = true;
+                        break;
                 }
-            } else {
-                $show_password_form = false;
-            }
-            
-            // If no errors and not showing password form, increment view count
-            if (empty($error) && !$show_password_form) {
-                $stmt = $pdo->prepare("UPDATE shares SET view_count = view_count + 1 WHERE id = ?");
-                $stmt->execute([$share['id']]);
+                
+                // If no errors and not showing forms, increment view count
+                if (empty($error) && !$show_password_form && !$show_access_code_form) {
+                    $stmt = $pdo->prepare("UPDATE shares SET view_count = view_count + 1 WHERE id = ?");
+                    $stmt->execute([$share['id']]);
+                }
             }
         }
     } catch (PDOException $e) {
@@ -62,7 +93,7 @@ if (empty($share_key)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo !empty($share) ? htmlspecialchars($share['title'] ?? 'Shared Content') : 'View Share'; ?> - <?php echo SITE_NAME; ?></title>
+    <title>View Share - <?php echo SITE_NAME; ?></title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -112,10 +143,10 @@ if (empty($share_key)) {
                     <a href="index.php" class="btn btn-primary"><i class="fas fa-home"></i> Back to Home</a>
                 </p>
             </div>
-        <?php elseif (isset($show_password_form) && $show_password_form): ?>
+        <?php elseif ($show_password_form): ?>
             <div class="auth-form glassmorphism">
                 <h2>Password Protected Share</h2>
-                <p>This share is protected with a password.</p>
+                <p>This private share is protected with a password.</p>
                 
                 <?php if ($error): ?>
                     <div class="alert alert-error"><?php echo $error; ?></div>
@@ -139,7 +170,29 @@ if (empty($share_key)) {
                     <a href="index.php"><i class="fas fa-arrow-left"></i> Back to Home</a>
                 </p>
             </div>
-        <?php elseif ($share): ?>
+        <?php elseif ($show_access_code_form): ?>
+            <div class="auth-form glassmorphism">
+                <h2>Protected Share</h2>
+                <p>This protected share requires a 4-character access code.</p>
+                
+                <?php if ($error): ?>
+                    <div class="alert alert-error"><?php echo $error; ?></div>
+                <?php endif; ?>
+                
+                <form method="POST" action="">
+                    <div class="form-group">
+                        <label for="access_code">Access Code</label>
+                        <input type="text" id="access_code" name="access_code" maxlength="4" placeholder="XXXX" required style="text-transform: uppercase; letter-spacing: 5px; font-family: monospace; text-align: center;">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Access Content</button>
+                </form>
+                
+                <p class="text-center">
+                    <a href="index.php"><i class="fas fa-arrow-left"></i> Back to Home</a>
+                </p>
+            </div>
+        <?php elseif ($share && $show_protected_content): ?>
             <div class="auth-form glassmorphism">
                 <div class="share-header">
                     <h2><?php echo htmlspecialchars($share['title'] ?? 'Shared Content'); ?></h2>
@@ -149,6 +202,13 @@ if (empty($share_key)) {
                         <?php endif; ?>
                         <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y g:i A', strtotime($share['created_at'])); ?></span>
                         <span><i class="fas fa-eye"></i> <?php echo $share['view_count'] + 1; ?> views</span>
+                        <span class="visibility-badge <?php echo $share['visibility']; ?>">
+                            <i class="fas fa-<?php 
+                                echo $share['visibility'] === 'public' ? 'globe' : 
+                                     ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
+                            ?>"></i> 
+                            <?php echo ucfirst($share['visibility']); ?>
+                        </span>
                     </div>
                 </div>
                 
@@ -201,6 +261,45 @@ if (empty($share_key)) {
                         <button type="submit" class="btn btn-primary">Submit Report</button>
                     </form>
                 </div>
+            </div>
+        <?php elseif ($share && !$show_protected_content): ?>
+            <div class="auth-form glassmorphism">
+                <div class="share-header">
+                    <h2><?php echo htmlspecialchars($share['title'] ?? 'Shared Content'); ?></h2>
+                    <div class="share-meta">
+                        <?php if ($share['created_by']): ?>
+                            <span><i class="fas fa-user"></i> <?php echo htmlspecialchars($share['username']); ?></span>
+                        <?php endif; ?>
+                        <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y g:i A', strtotime($share['created_at'])); ?></span>
+                        <span><i class="fas fa-eye"></i> <?php echo $share['view_count'] + 1; ?> views</span>
+                        <span class="visibility-badge <?php echo $share['visibility']; ?>">
+                            <i class="fas fa-<?php 
+                                echo $share['visibility'] === 'public' ? 'globe' : 
+                                     ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
+                            ?>"></i> 
+                            <?php echo ucfirst($share['visibility']); ?>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="share-content restricted">
+                    <div class="restricted-message">
+                        <i class="fas fa-<?php 
+                            echo $share['visibility'] === 'private' ? 'lock' : 'shield-alt'; 
+                        ?> fa-3x"></i>
+                        <h3>Restricted Content</h3>
+                        <p>This <?php echo $share['visibility']; ?> share requires <?php 
+                            echo $share['visibility'] === 'private' ? 'a password' : 'a 4-character access code'; 
+                        ?> to view.</p>
+                        <p>To access this content, you need to <?php 
+                            echo $share['visibility'] === 'private' ? 'enter the password' : 'enter the access code'; 
+                        ?> provided by the creator.</p>
+                    </div>
+                </div>
+                
+                <p class="text-center">
+                    <a href="index.php"><i class="fas fa-arrow-left"></i> Back to Home</a>
+                </p>
             </div>
         <?php endif; ?>
     </main>
