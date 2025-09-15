@@ -7,23 +7,30 @@ $error = '';
 $success = '';
 $share_link = '';
 
+// Generate CSRF token for the form
+$csrf_token = generateCSRFToken();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = sanitizeInput($_POST['title']);
-    $content = $_POST['content'];
-    $expiration = sanitizeInput($_POST['expiration']);
-    $visibility = sanitizeInput($_POST['visibility']);
-    $password = $_POST['password'];
-    $access_code = isset($_POST['access_code']) ? sanitizeInput($_POST['access_code']) : null;
-    $is_public = isset($_POST['is_public']) ? 1 : 0;
-    
-    // Validation
-    if (empty($content)) {
-        $error = 'Content is required.';
-    } elseif ($visibility === 'private' && empty($password)) {
-        $error = 'Password is required for private shares.';
-    } elseif ($visibility === 'protected' && empty($access_code)) {
-        $error = 'Access code is required for protected shares.';
+    // CSRF protection
+    if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
+        $error = 'Invalid request. Please try again.';
     } else {
+        $title = sanitizeInput($_POST['title']);
+        $content = $_POST['content'];
+        $expiration = sanitizeInput($_POST['expiration']);
+        $visibility = sanitizeInput($_POST['visibility']);
+        $password = $_POST['password'];
+        $access_code = isset($_POST['access_code']) ? sanitizeInput($_POST['access_code']) : null;
+        $is_public = isset($_POST['is_public']) ? 1 : 0;
+        
+        // Validation
+        if (empty($content)) {
+            $error = 'Content is required.';
+        } elseif ($visibility === 'private' && empty($password)) {
+            $error = 'Password is required for private shares.';
+        } elseif ($visibility === 'protected' && empty($access_code)) {
+            $error = 'Access code is required for protected shares.';
+        } else {
         try {
             $db = new Database();
             $pdo = $db->getConnection();
@@ -71,16 +78,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $error = 'Failed to share text. Please try again.';
             }
-        } catch (PDOException $e) {
-            $error = 'Failed to share text. Please try again.';
-            error_log("Text share error: " . $e->getMessage());
-        } catch (Exception $e) {
-            $error = 'An unexpected error occurred. Please try again.';
-            error_log("Text share exception: " . $e->getMessage());
+        }
+            } catch (PDOException $e) {
+                $error = 'Failed to share text. Please try again.';
+                error_log("Text share error: " . $e->getMessage());
+            } catch (Exception $e) {
+                $error = 'An unexpected error occurred. Please try again.';
+                error_log("Text share exception: " . $e->getMessage());
+            }
         }
     }
 }
-?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -172,6 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <?php if (!$success): ?>
                 <form method="POST" action="">
+                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                     <div class="form-group">
                         <label for="title">Title (Optional)</label>
                         <input type="text" id="title" name="title" placeholder="Enter a title for your text">
