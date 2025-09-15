@@ -12,47 +12,55 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = sanitizeInput($_POST['username']);
-    $email = sanitizeInput($_POST['email']);
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
-
-    // Validation
-    if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        $error = 'All fields are required.';
-    } elseif (strlen($username) < 3) {
-        $error = 'Username must be at least 3 characters long.';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Invalid email format.';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters long.';
-    } elseif ($password !== $confirm_password) {
-        $error = 'Passwords do not match.';
+    // CSRF protection
+    if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
+        $error = 'Invalid request. Please try again.';
     } else {
-        try {
-            $db = new Database();
-            $pdo = $db->getConnection();
+        $username = sanitizeInput($_POST['username']);
+        $email = sanitizeInput($_POST['email']);
+        $password = $_POST['password'];
+        $confirm_password = $_POST['confirm_password'];
 
-            // Check if username or email already exists
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-            $stmt->execute([$username, $email]);
-            
-            if ($stmt->rowCount() > 0) {
-                $error = 'Username or email already exists.';
-            } else {
-                // Register user
-                $hashedPassword = hashPassword($password);
-                $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-                $stmt->execute([$username, $email, $hashedPassword]);
+        // Validation
+        if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
+            $error = 'All fields are required.';
+        } elseif (strlen($username) < 3) {
+            $error = 'Username must be at least 3 characters long.';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error = 'Invalid email format.';
+        } elseif (strlen($password) < 6) {
+            $error = 'Password must be at least 6 characters long.';
+        } elseif ($password !== $confirm_password) {
+            $error = 'Passwords do not match.';
+        } else {
+            try {
+                $db = new Database();
+                $pdo = $db->getConnection();
+
+                // Check if username or email already exists
+                $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+                $stmt->execute([$username, $email]);
                 
-                $success = 'Registration successful! You can now log in.';
+                if ($stmt->rowCount() > 0) {
+                    $error = 'Username or email already exists.';
+                } else {
+                    // Register user
+                    $hashedPassword = hashPassword($password);
+                    $stmt = $pdo->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+                    $stmt->execute([$username, $email, $hashedPassword]);
+                    
+                    $success = 'Registration successful! You can now log in.';
+                }
+            } catch (PDOException $e) {
+                $error = 'Registration failed. Please try again.';
+                error_log("Registration error: " . $e->getMessage());
             }
-        } catch (PDOException $e) {
-            $error = 'Registration failed. Please try again.';
-            error_log("Registration error: " . $e->getMessage());
         }
     }
 }
+
+// Generate CSRF token for the form
+$csrf_token = generateCSRFToken();
 ?>
 
 <!DOCTYPE html>
@@ -120,6 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" required placeholder="Choose a username (min. 3 characters)">
