@@ -16,20 +16,54 @@ define('ADMIN_EMAIL', 'admin@sharekoro.com');
 // File upload configuration
 define('UPLOAD_DIR', 'uploads/');
 define('MAX_FILE_SIZE', 10 * 1024 * 1024); // 10MB in bytes
+
+// Enhanced allowed file types with security considerations
 define('ALLOWED_FILE_TYPES', [
+    // Text files
     'text/plain',
     'text/html',
     'text/css',
     'text/javascript',
+    'text/csv',
+    'text/xml',
+    
+    // Programming languages
     'application/javascript',
     'application/json',
     'application/xml',
+    'application/x-sh',
+    'application/x-perl',
+    'application/x-python',
+    'application/x-ruby',
+    
+    // Images
     'image/jpeg',
     'image/png',
     'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    
+    // Documents
     'application/pdf',
     'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    
+    // Archives (use with caution)
+    'application/zip',
+    'application/x-tar',
+    'application/gzip'
+]);
+
+// Dangerous file extensions to block (even if MIME type is allowed)
+define('BLOCKED_EXTENSIONS', [
+    'php', 'php3', 'php4', 'php5', 'phtml', 'phps',
+    'asp', 'aspx', 'jsp', 'cgi', 'pl', 'py',
+    'exe', 'bat', 'cmd', 'sh', 'bin',
+    'js', 'html', 'htm', 'xhtml', 'xml'
 ]);
 
 // Expiration options
@@ -43,4 +77,8 @@ define('EXPIRATION_OPTIONS', [
 
 // Session configuration
 define('SESSION_LIFETIME', 3600); // 1 hour
+
+// Security settings
+define('ENABLE_FILE_CONTENT_SCAN', true);
+define('ENABLE_ANTIVIRUS_SCAN', false); // Set to true if you have antivirus integration
 ?>
