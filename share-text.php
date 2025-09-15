@@ -153,28 +153,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             
             <?php if ($success): ?>
-                <div class="alert alert-success">
+                <div class="alert alert-success" role="alert" aria-live="polite">
                     <i class="fas fa-check-circle"></i> <?php echo $success; ?>
                     <div class="form-group">
                         <label for="share_link">Share Link:</label>
                         <div class="input-group">
-                            <input type="text" id="share_link" value="<?php echo $share_link; ?>" readonly>
-                            <button class="btn btn-primary" onclick="copyToClipboard('<?php echo $share_link; ?>')">
+                            <input type="text" id="share_link" value="<?php echo $share_link; ?>" readonly aria-label="Share link">
+                            <button class="btn btn-primary" onclick="copyToClipboard('<?php echo $share_link; ?>')" aria-label="Copy share link to clipboard">
                                 <i class="fas fa-copy"></i> Copy
                             </button>
                         </div>
                     </div>
                     <div class="btn-group">
-                        <a href="<?php echo $share_link; ?>" target="_blank" class="btn btn-primary">
+                        <a href="<?php echo $share_link; ?>" target="_blank" class="btn btn-primary" aria-label="View share in new tab">
                             <i class="fas fa-external-link-alt"></i> View Share
                         </a>
-                        <button class="btn btn-facebook" onclick="shareToFacebook('<?php echo $share_link; ?>')">
+                        <button class="btn btn-facebook" onclick="shareToFacebook('<?php echo $share_link; ?>')" aria-label="Share on Facebook">
                             <i class="fab fa-facebook-f"></i> Facebook
                         </button>
-                        <button class="btn btn-twitter" onclick="shareToTwitter('<?php echo $share_link; ?>', '<?php echo htmlspecialchars($title); ?>')">
+                        <button class="btn btn-twitter" onclick="shareToTwitter('<?php echo $share_link; ?>', '<?php echo htmlspecialchars($title); ?>')" aria-label="Share on Twitter">
                             <i class="fab fa-twitter"></i> Twitter
                         </button>
-                        <button class="btn btn-linkedin" onclick="shareToLinkedIn('<?php echo $share_link; ?>', '<?php echo htmlspecialchars($title); ?>')">
+                        <button class="btn btn-linkedin" onclick="shareToLinkedIn('<?php echo $share_link; ?>', '<?php echo htmlspecialchars($title); ?>')" aria-label="Share on LinkedIn">
                             <i class="fab fa-linkedin-in"></i> LinkedIn
                         </button>
                     </div>
@@ -182,72 +182,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             
             <?php if (!$success): ?>
-                <form method="POST" action="">
+                <form method="POST" action="" role="form" aria-label="Share text form">
                     <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                     <div class="form-group">
                         <label for="title">Title (Optional)</label>
-                        <input type="text" id="title" name="title" placeholder="Enter a title for your text">
+                        <input type="text" id="title" name="title" placeholder="Enter a title for your text" aria-describedby="title-help">
+                        <div id="title-help" class="form-text">Enter an optional title for your text share</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="content">Content *</label>
-                        <textarea id="content" name="content" rows="10" required placeholder="Enter your text content here..."></textarea>
+                        <textarea id="content" name="content" rows="10" required placeholder="Enter your text content here..." aria-describedby="content-help"></textarea>
+                        <div id="content-help" class="form-text">Enter the text content you want to share (required)</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="visibility">Visibility</label>
-                        <select id="visibility" name="visibility">
+                        <select id="visibility" name="visibility" aria-describedby="visibility-help">
                             <option value="public">Public - Visible to everyone</option>
                             <option value="private">Private - Password required</option>
                             <option value="protected">Protected - 4-digit code required</option>
                         </select>
+                        <div id="visibility-help" class="form-text">Select who can view your share</div>
                     </div>
                     
-                    <div class="visibility-option private-option" style="display: none;">
+                    <div class="visibility-option private-option" style="display: none;" aria-hidden="true">
                         <h4><i class="fas fa-lock"></i> Password Protection</h4>
                         <div class="form-group">
                             <label for="password">Password</label>
                             <div class="input-group">
-                                <input type="password" id="password" name="password" placeholder="Enter password for private access">
-                                <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')">
+                                <input type="password" id="password" name="password" placeholder="Enter password for private access" aria-describedby="password-help">
+                                <span class="input-group-addon" onclick="togglePasswordVisibility('password', 'password_icon')" aria-label="Toggle password visibility" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')togglePasswordVisibility('password', 'password_icon')">
                                     <i class="fas fa-eye" id="password_icon"></i>
                                 </span>
                             </div>
-                            <small class="form-text">Users must enter this password to view content</small>
+                            <div id="password-help" class="form-text">Users must enter this password to view content</div>
                         </div>
                     </div>
                     
-                    <div class="visibility-option protected-option" style="display: none;">
+                    <div class="visibility-option protected-option" style="display: none;" aria-hidden="true">
                         <h4><i class="fas fa-shield-alt"></i> Access Code Protection</h4>
                         <div class="form-group">
                             <label>Access Code</label>
                             <div class="input-group">
-                                <input type="text" id="access_code" name="access_code" placeholder="Auto-generated" readonly>
-                                <span class="input-group-addon" onclick="generateAccessCode()">
+                                <input type="text" id="access_code" name="access_code" placeholder="Auto-generated" readonly aria-describedby="access-code-help">
+                                <span class="input-group-addon" onclick="generateAccessCode()" aria-label="Generate new access code" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')generateAccessCode()">
                                     <i class="fas fa-sync"></i>
                                 </span>
                             </div>
-                            <small class="form-text">Users must enter this 4-character code to view content</small>
+                            <div id="access-code-help" class="form-text">Users must enter this 4-character code to view content</div>
                         </div>
                     </div>
                     
                     <div class="form-group">
                         <label for="expiration">Expiration</label>
-                        <select id="expiration" name="expiration">
+                        <select id="expiration" name="expiration" aria-describedby="expiration-help">
                             <?php foreach (EXPIRATION_OPTIONS as $key => $value): ?>
                                 <option value="<?php echo $key; ?>"><?php echo $value; ?></option>
                             <?php endforeach; ?>
                         </select>
+                        <div id="expiration-help" class="form-text">Select when your share will expire</div>
                     </div>
                     
                     <div class="form-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" name="is_public" id="is_public" checked> 
+                            <input type="checkbox" name="is_public" id="is_public" checked aria-describedby="public-help"> 
                             Make public (appears in recent shares)
                         </label>
+                        <div id="public-help" class="form-text">Uncheck to make this share completely private</div>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary" aria-label="Share text">
                         <i class="fas fa-share-alt"></i> Share Text
                     </button>
                 </form>
@@ -321,20 +326,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Hide all options first
             privateOption.style.display = 'none';
             protectedOption.style.display = 'none';
+            privateOption.setAttribute('aria-hidden', 'true');
+            protectedOption.setAttribute('aria-hidden', 'true');
             
             // Show relevant option
             if (visibility === 'private') {
                 privateOption.style.display = 'block';
+                privateOption.setAttribute('aria-hidden', 'false');
                 isPublicCheckbox.checked = false;
                 isPublicCheckbox.disabled = true;
+                isPublicCheckbox.setAttribute('aria-disabled', 'true');
             } else if (visibility === 'protected') {
                 protectedOption.style.display = 'block';
+                protectedOption.setAttribute('aria-hidden', 'false');
                 isPublicCheckbox.checked = false;
                 isPublicCheckbox.disabled = true;
+                isPublicCheckbox.setAttribute('aria-disabled', 'true');
                 generateAccessCode();
             } else {
                 isPublicCheckbox.checked = true;
                 isPublicCheckbox.disabled = false;
+                isPublicCheckbox.setAttribute('aria-disabled', 'false');
             }
         }
         
@@ -345,8 +357,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             for (let i = 0; i < 4; i++) {
                 code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-            document.getElementById('access_code').value = code;
+            const accessCodeInput = document.getElementById('access_code');
+            accessCodeInput.value = code;
             showNotification('Access code generated: ' + code);
+            
+            // Announce to screen readers
+            const announcement = document.createElement('div');
+            announcement.setAttribute('aria-live', 'polite');
+            announcement.setAttribute('aria-atomic', 'true');
+            announcement.className = 'sr-only';
+            announcement.textContent = 'Access code generated: ' + code;
+            document.body.appendChild(announcement);
+            
+            // Remove after announcement
+            setTimeout(() => {
+                document.body.removeChild(announcement);
+            }, 1000);
         }
         
         // Initialize on page load
@@ -356,6 +382,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 visibilitySelect.addEventListener('change', toggleVisibilityOptions);
                 toggleVisibilityOptions(); // Initialize on load
             }
+            
+            // Add keyboard support for toggle buttons
+            const toggleButtons = document.querySelectorAll('.input-group-addon[role="button"]');
+            toggleButtons.forEach(button => {
+                button.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.click();
+                    }
+                });
+            });
         });
         
         // Social sharing functions
