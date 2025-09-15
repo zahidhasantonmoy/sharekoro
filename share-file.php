@@ -7,7 +7,14 @@ $error = '';
 $success = '';
 $share_link = '';
 
+// Generate CSRF token for the form
+$csrf_token = generateCSRFToken();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF protection
+    if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
+        $error = 'Invalid request. Please try again.';
+    } else {
     $title = sanitizeInput($_POST['title']);
     $expiration = sanitizeInput($_POST['expiration']);
     $visibility = sanitizeInput($_POST['visibility']);
@@ -197,6 +204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <?php if (!$success): ?>
                 <form method="POST" action="" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                     <div class="form-group">
                         <label for="title">Title (Optional)</label>
                         <input type="text" id="title" name="title" placeholder="Enter a title for your file">
