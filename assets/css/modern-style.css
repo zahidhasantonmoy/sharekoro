@@ -33,6 +33,19 @@
   --text-light-secondary: #e0e0e0;
   --text-dark: #121212;
   
+  /* Light theme variables */
+  --light-bg: #f5f7fa;
+  --light-bg-light: #ffffff;
+  --light-bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #ffffff 50%, #f0f2f5 100%);
+  --text-dark-primary: #333333;
+  --text-dark-secondary: #666666;
+  
+  /* Glassmorphism variables for light theme */
+  --glass-bg-light: rgba(255, 255, 255, 0.7);
+  --glass-bg-light-strong: rgba(255, 255, 255, 0.85);
+  --glass-border-light: rgba(0, 0, 0, 0.1);
+  --glass-border-light-strong: rgba(0, 0, 0, 0.2);
+  
   /* Transitions and animations */
   --transition-fast: all 0.2s ease;
   --transition-normal: all 0.3s ease;
@@ -40,12 +53,7 @@
   --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Dark theme (default) */
 body {
   font-family: 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--dark-bg-gradient);
@@ -54,6 +62,17 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   position: relative;
+}
+
+/* Light theme */
+body.light-theme {
+  background: var(--light-bg-gradient);
+  color: var(--text-dark-primary);
+}
+
+body.light-theme::before {
+  background: radial-gradient(circle at 10% 20%, rgba(108, 99, 255, 0.05) 0%, transparent 20%),
+              radial-gradient(circle at 90% 80%, rgba(255, 101, 132, 0.05) 0%, transparent 20%);
 }
 
 body::before {
@@ -88,6 +107,12 @@ body::before {
   transition: var(--transition-normal);
 }
 
+/* Light theme glassmorphism */
+body.light-theme .glassmorphism {
+  background: var(--glass-bg-light);
+  border: 1px solid var(--glass-border-light);
+}
+
 .glassmorphism::before {
   content: '';
   position: absolute;
@@ -100,11 +125,23 @@ body::before {
   border-radius: 24px;
 }
 
+/* Light theme glassmorphism before */
+body.light-theme .glassmorphism::before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
+}
+
 .glassmorphism:hover {
   background: var(--glass-bg-strong);
   border: 1px solid var(--glass-border-strong);
   transform: translateY(-5px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Light theme glassmorphism hover */
+body.light-theme .glassmorphism:hover {
+  background: var(--glass-bg-light-strong);
+  border: 1px solid var(--glass-border-light-strong);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 /* iOS-inspired Buttons */
@@ -129,6 +166,11 @@ body::before {
   gap: 10px;
 }
 
+/* Light theme buttons */
+body.light-theme .btn {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
 .btn i {
   font-size: 18px;
   transition: var(--transition-fast);
@@ -146,15 +188,31 @@ body::before {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Light theme primary button */
+body.light-theme .btn-primary {
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
   transform: translateY(-3px);
   box-shadow: 0 10px 25px rgba(108, 99, 255, 0.5);
 }
 
+/* Light theme primary button hover */
+body.light-theme .btn-primary:hover {
+  box-shadow: 0 10px 25px rgba(108, 99, 255, 0.3);
+}
+
 .btn-primary:active {
   transform: translateY(0);
   box-shadow: 0 4px 15px rgba(108, 99, 255, 0.4);
+}
+
+/* Light theme primary button active */
+body.light-theme .btn-primary:active {
+  box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
 }
 
 /* Secondary Button */
@@ -399,6 +457,12 @@ body::before {
   backdrop-filter: var(--glass-backdrop);
   -webkit-backdrop-filter: var(--glass-backdrop);
   border-bottom: 1px solid var(--glass-border);
+}
+
+/* Light theme header */
+body.light-theme .header {
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid var(--glass-border-light);
 }
 
 .header .container {
@@ -820,6 +884,11 @@ body::before {
   font-size: 1.1rem;
 }
 
+/* Light theme form labels */
+body.light-theme .form-group label {
+  color: var(--text-dark-secondary);
+}
+
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -835,12 +904,28 @@ body::before {
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* Light theme form inputs */
+body.light-theme .form-group input,
+body.light-theme .form-group select,
+body.light-theme .form-group textarea {
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--text-dark-primary);
+  border: 2px solid var(--glass-border-light);
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.3);
+}
+
+/* Light theme form inputs focus */
+body.light-theme .form-group input:focus,
+body.light-theme .form-group select:focus,
+body.light-theme .form-group textarea:focus {
+  box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.2);
 }
 
 .form-group textarea {

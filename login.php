@@ -104,9 +104,12 @@ $csrf_token = generateCSRFToken();
                             <i class="fas fa-cog"></i> Admin Panel
                         </a>
                     <?php endif; ?>
-                    <a href="logout.php" class="btn btn-logout">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
+                    <form method="POST" action="logout.php" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
+                        <button type="submit" class="btn btn-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
                 <?php else: ?>
                     <a href="login.php" class="btn btn-secondary">
                         <i class="fas fa-sign-in-alt"></i> Login
@@ -115,6 +118,9 @@ $csrf_token = generateCSRFToken();
                         <i class="fas fa-user-plus"></i> Register
                     </a>
                 <?php endif; ?>
+                <button id="theme-toggle" class="btn btn-outline" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
             </nav>
         </div>
     </header>

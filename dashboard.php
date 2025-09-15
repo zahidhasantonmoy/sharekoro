@@ -81,21 +81,33 @@ try {
                 <a href="index.php" class="btn btn-outline" title="Home">
                     <i class="fas fa-home"></i> Home
                 </a>
-                <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
-                <a href="dashboard.php" class="btn btn-dashboard">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
-                </a>
-                <?php if (isAdmin()): ?>
-                    <a href="admin/" class="btn btn-admin">
-                        <i class="fas fa-cog"></i> Admin Panel
+                                <?php if (isLoggedIn()): ?>
+                    <span>Welcome, <?php echo $_SESSION['username']; ?>!</span>
+                    <a href="dashboard.php" class="btn btn-dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <?php if (isAdmin()): ?>
+                        <a href="admin/" class="btn btn-admin">
+                            <i class="fas fa-cog"></i> Admin Panel
+                        </a>
+                    <?php endif; ?>
+                    <form method="POST" action="logout.php" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <button type="submit" class="btn btn-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                <?php else: ?>
+                    <a href="login.php" class="btn btn-secondary">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                    <a href="register.php" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Register
                     </a>
                 <?php endif; ?>
-                <form method="POST" action="logout.php" style="display: inline;">
-                    <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
-                    <button type="submit" class="btn btn-logout">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </form>
+                <button id="theme-toggle" class="btn btn-outline" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
             </nav>
         </div>
     </header>

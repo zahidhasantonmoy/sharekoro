@@ -51,6 +51,9 @@ require_once 'init.php';
                         <i class="fas fa-user-plus"></i> Register
                     </a>
                 <?php endif; ?>
+                <button id="theme-toggle" class="btn btn-outline" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
             </nav>
         </div>
     </header>
