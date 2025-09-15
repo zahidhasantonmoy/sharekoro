@@ -64,9 +64,12 @@ try {
                             <i class="fas fa-cog"></i> Admin Panel
                         </a>
                     <?php endif; ?>
-                    <a href="logout.php" class="btn btn-logout">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
+                    <form method="POST" action="logout.php" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="<?php echo generateCSRFToken(); ?>">
+                        <button type="submit" class="btn btn-logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
                 <?php else: ?>
                     <a href="login.php" class="btn btn-secondary">
                         <i class="fas fa-sign-in-alt"></i> Login
