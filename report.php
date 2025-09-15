@@ -4,6 +4,13 @@
 require_once 'init.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // CSRF protection
+    if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
+        $_SESSION['error'] = 'Invalid request. Please try again.';
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        exit;
+    }
+    
     $share_id = (int)$_POST['share_id'];
     $reason = sanitizeInput($_POST['reason']);
     $reporter_ip = $_SERVER['REMOTE_ADDR'];

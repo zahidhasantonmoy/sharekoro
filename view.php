@@ -3,6 +3,9 @@
 
 require_once 'init.php';
 
+// Generate CSRF token
+$csrf_token = generateCSRFToken();
+
 $error = '';
 $share = null;
 $share_key = isset($_GET['key']) ? sanitizeInput($_GET['key']) : '';
@@ -275,6 +278,7 @@ if (empty($share_key)) {
                     <h2><i class="fas fa-flag"></i> Report Share</h2>
                     <form method="POST" action="report.php">
                         <input type="hidden" name="share_id" value="<?php echo $share['id']; ?>">
+                        <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                         <div class="form-group">
                             <label for="reason">Reason for reporting:</label>
                             <textarea id="reason" name="reason" rows="5" required placeholder="Please describe why you are reporting this content..."></textarea>
