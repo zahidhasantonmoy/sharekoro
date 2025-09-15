@@ -11,44 +11,64 @@ if (isLoggedIn()) {
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = sanitizeInput($_POST['email']);
-    $password = $_POST['password'];
-
-    // Validation
-    if (empty($email) || empty($password)) {
-        $error = 'All fields are required.';
+    // CSRF protection
+    if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
+        $error = 'Invalid request. Please try again.';
     } else {
-        try {
-            $db = new Database();
-            $pdo = $db->getConnection();
-
-            // Check if user exists
-            $stmt = $pdo->prepare("SELECT id, username, email, password, role FROM users WHERE email = ?");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch();
-
-            if ($user && verifyPassword($password, $user['password'])) {
-                // Login successful
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['email'] = $user['email'];
-                $_SESSION['role'] = $user['role'];
-                
-                // Update last login
-                $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
-                $stmt->execute([$user['id']]);
-                
-                // Redirect to dashboard or index
-                redirect('index.php');
+        $email = sanitizeInput($_POST['email']);
+        $password = $_POST['password'];
+        
+        // Rate limiting
+        $ip = $_SERVER['REMOTE_ADDR'];
+        if (!checkRateLimit($ip)) {
+            $error = 'Too many login attempts. Please try again later.';
+        } else {
+            // Validation
+            if (empty($email) || empty($password)) {
+                $error = 'All fields are required.';
             } else {
-                $error = 'Invalid email or password.';
+                try {
+                    $db = new Database();
+                    $pdo = $db->getConnection();
+
+                    // Check if user exists
+                    $stmt = $pdo->prepare("SELECT id, username, email, password, role FROM users WHERE email = ?");
+                    $stmt->execute([$email]);
+                    $user = $stmt->fetch();
+
+                    if ($user && verifyPassword($password, $user['password'])) {
+                        // Login successful
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['username'] = $user['username'];
+                        $_SESSION['email'] = $user['email'];
+                        $_SESSION['role'] = $user['role'];
+                        
+                        // Update last login
+                        $stmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+                        $stmt->execute([$user['id']]);
+                        
+                        // Clear login attempts on success
+                        unset($_SESSION['login_attempts'][$ip]);
+                        unset($_SESSION['last_attempt'][$ip]);
+                        
+                        // Redirect to dashboard or index
+                        redirect('index.php');
+                    } else {
+                        $error = 'Invalid email or password.';
+                        // Record failed attempt
+                        recordLoginAttempt($ip);
+                    }
+                } catch (PDOException $e) {
+                    $error = 'Login failed. Please try again.';
+                    error_log("Login error: " . $e->getMessage());
+                }
             }
-        } catch (PDOException $e) {
-            $error = 'Login failed. Please try again.';
-            error_log("Login error: " . $e->getMessage());
         }
     }
 }
+
+// Generate CSRF token for the form
+$csrf_token = generateCSRFToken();
 ?>
 
 <!DOCTYPE html>
@@ -110,6 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
             
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo $csrf_token; ?>">
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input type="email" id="email" name="email" required placeholder="Enter your email address">
