@@ -35,6 +35,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Check file type
         else if (!isValidFileType($file['type'])) {
             $error = 'File type not allowed. Please upload a valid file.';
+        }
+        // Check file extension
+        else if (isDangerousFile($file['name'])) {
+            $error = 'File extension not allowed. Please upload a valid file.';
+        }
+        // Scan file content for security issues
+        else if (ENABLE_FILE_CONTENT_SCAN && !isSafeFileContent($file['tmp_name'])) {
+            $error = 'File content not allowed. Please upload a safe file.';
         } elseif ($visibility === 'private' && empty($password)) {
             $error = 'Password is required for private shares.';
         } elseif ($visibility === 'protected' && empty($access_code)) {

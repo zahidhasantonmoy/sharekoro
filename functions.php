@@ -170,4 +170,48 @@ function recordLoginAttempt($ip) {
         $_SESSION['login_attempts'][$ip] + 1 : 1;
     $_SESSION['last_attempt'][$ip] = time();
 }
+
+/**
+ * Check if file extension is dangerous
+ */
+function isDangerousFile($filename) {
+    $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    return in_array($extension, BLOCKED_EXTENSIONS);
+}
+
+/**
+ * Check if file content is safe
+ */
+function isSafeFileContent($filepath) {
+    // Skip content scanning for non-text files
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $filepath);
+    finfo_close($finfo);
+    
+    // For text files, check for potentially dangerous content
+    if (strpos($mimeType, 'text/') === 0) {
+        $content = file_get_contents($filepath);
+        
+        // Look for potentially dangerous patterns
+        $dangerous_patterns = [
+            '/<\?php/i',           // PHP tags
+            '/<\?=/i',             // PHP short tags
+            '/<script/i',           // JavaScript
+            '/javascript:/i',       // JavaScript URLs
+            '/onload=/i',           // Event handlers
+            '/onerror=/i',          // Event handlers
+            '/eval\s*\(/i',       // eval function
+            '/document\.cookie/i',  // Cookie access
+            '/document\.write/i',  // Document write
+        ];
+        
+        foreach ($dangerous_patterns as $pattern) {
+            if (preg_match($pattern, $content)) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
 ?>
