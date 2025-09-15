@@ -214,4 +214,50 @@ function isSafeFileContent($filepath) {
     
     return true;
 }
+
+/**
+ * Get cached data or fetch from database
+ */
+function getCachedData($key, $callback, $ttl = 300) {
+    // Simple in-memory cache using session
+    if (isset($_SESSION['cache'][$key])) {
+        $cached = $_SESSION['cache'][$key];
+        if (time() - $cached['time'] < $ttl) {
+            return $cached['data'];
+        }
+    }
+    
+    // Fetch fresh data
+    $data = $callback();
+    
+    // Store in cache
+    if (!isset($_SESSION['cache'])) {
+        $_SESSION['cache'] = [];
+    }
+    $_SESSION['cache'][$key] = [
+        'data' => $data,
+        'time' => time()
+    ];
+    
+    return $data;
+}
+
+/**
+ * Get latest public shares with caching
+ */
+function getLatestShares($limit = 15) {
+    return getCachedData('latest_shares_' . $limit, function() use ($limit) {
+        try {
+            $db = new Database();
+            $pdo = $db->getConnection();
+            
+            $stmt = $pdo->prepare("SELECT s.*, u.username FROM shares s LEFT JOIN users u ON s.created_by = u.id WHERE s.is_public = 1 AND (s.expiration_date IS NULL OR s.expiration_date > NOW()) ORDER BY s.created_at DESC LIMIT ?");
+            $stmt->execute([$limit]);
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Latest shares query error: " . $e->getMessage());
+            return [];
+        }
+    });
+}
 ?>

@@ -8,13 +8,8 @@ $shares = [];
 $limit = 15;
 
 try {
-    $db = new Database();
-    $pdo = $db->getConnection();
-    
-    // Get latest public shares
-    $stmt = $pdo->prepare("SELECT s.*, u.username FROM shares s LEFT JOIN users u ON s.created_by = u.id WHERE s.is_public = 1 AND (s.expiration_date IS NULL OR s.expiration_date > NOW()) ORDER BY s.created_at DESC LIMIT ?");
-    $stmt->execute([$limit]);
-    $shares = $stmt->fetchAll();
+    // Use cached data for better performance
+    $shares = getLatestShares($limit);
 } catch (PDOException $e) {
     $error = 'Failed to retrieve latest shares. Please try again.';
     error_log("Latest shares page error: " . $e->getMessage());
