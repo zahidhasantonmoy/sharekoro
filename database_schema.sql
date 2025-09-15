@@ -53,6 +53,26 @@ CREATE TABLE reports (
     FOREIGN KEY (share_id) REFERENCES shares(id) ON DELETE CASCADE
 );
 
+CREATE TABLE collections (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_public BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE collection_shares (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    collection_id INT NOT NULL,
+    share_id INT NOT NULL,
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE,
+    FOREIGN KEY (share_id) REFERENCES shares(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_collection_share (collection_id, share_id)
+);
+
 -- Insert default categories
 INSERT INTO categories (name, description) VALUES 
 ('Text', 'Plain text shares'),

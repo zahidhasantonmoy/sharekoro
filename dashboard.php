@@ -156,6 +156,13 @@ try {
                 </div>
             </div>
             
+            <!-- Collections Link -->
+            <div class="text-center" style="margin: 30px 0;">
+                <a href="collections.php" class="btn btn-primary">
+                    <i class="fas fa-folder"></i> Manage Collections
+                </a>
+            </div>
+            
             <h3>Your Recent Shares</h3>
             
             <?php if (count($shares) > 0): ?>
