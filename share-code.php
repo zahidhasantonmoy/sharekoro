@@ -55,13 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             // Insert share with visibility settings
-            $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, 'code', ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             
             // Fix the parameter count issue by ensuring all parameters are provided
             $result = $stmt->execute([
                 $share_key,
                 $title,
                 $content,
+                'code',
                 $expiration_date,
                 getCurrentUserId(),
                 $is_public,

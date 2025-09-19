@@ -35,7 +35,7 @@ if (empty($share_key)) {
             // Handle visibility levels
             else {
                 // Check visibility level
-                switch ($share['visibility']) {
+                switch ($share['visibility'] ?? 'public') {
                     case 'private':
                         // Private shares require password
                         if (!isset($_POST['password'])) {
@@ -212,12 +212,12 @@ if (empty($share_key)) {
                         <?php endif; ?>
                         <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y g:i A', strtotime($share['created_at'])); ?></span>
                         <span><i class="fas fa-eye"></i> <?php echo $share['view_count'] + 1; ?> views</span>
-                        <span class="visibility-badge <?php echo $share['visibility']; ?>">
+                        <span class="visibility-badge <?php echo $share['visibility'] ?? 'public'; ?>">
                             <i class="fas fa-<?php 
-                                echo $share['visibility'] === 'public' ? 'globe' : 
-                                     ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
+                                echo ($share['visibility'] ?? 'public') === 'public' ? 'globe' : 
+                                     (($share['visibility'] ?? 'public') === 'private' ? 'lock' : 'shield-alt'); 
                             ?>"></i> 
-                            <?php echo ucfirst($share['visibility'] ?? ''); ?>
+                            <?php echo ucfirst($share['visibility'] ?? 'public'); ?>
                         </span>
                     </div>
                 </div>
@@ -299,12 +299,12 @@ if (empty($share_key)) {
                         <?php endif; ?>
                         <span><i class="fas fa-calendar"></i> <?php echo date('M j, Y g:i A', strtotime($share['created_at'])); ?></span>
                         <span><i class="fas fa-eye"></i> <?php echo $share['view_count'] + 1; ?> views</span>
-                        <span class="visibility-badge <?php echo $share['visibility']; ?>">
+                        <span class="visibility-badge <?php echo $share['visibility'] ?? 'public'; ?>">
                             <i class="fas fa-<?php 
-                                echo $share['visibility'] === 'public' ? 'globe' : 
-                                     ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
+                                echo ($share['visibility'] ?? 'public') === 'public' ? 'globe' : 
+                                     (($share['visibility'] ?? 'public') === 'private' ? 'lock' : 'shield-alt'); 
                             ?>"></i> 
-                            <?php echo ucfirst($share['visibility'] ?? ''); ?>
+                            <?php echo ucfirst($share['visibility'] ?? 'public'); ?>
                         </span>
                     </div>
                 </div>
@@ -312,14 +312,14 @@ if (empty($share_key)) {
                 <div class="share-content restricted">
                     <div class="restricted-message">
                         <i class="fas fa-<?php 
-                            echo $share['visibility'] === 'private' ? 'lock' : 'shield-alt'; 
+                            echo ($share['visibility'] ?? 'public') === 'private' ? 'lock' : 'shield-alt'; 
                         ?> fa-3x"></i>
                         <h3>Restricted Content</h3>
-                        <p>This <?php echo $share['visibility']; ?> share requires <?php 
-                            echo $share['visibility'] === 'private' ? 'a password' : 'a 4-character access code'; 
+                        <p>This <?php echo $share['visibility'] ?? 'public'; ?> share requires <?php 
+                            echo ($share['visibility'] ?? 'public') === 'private' ? 'a password' : 'a 4-character access code'; 
                         ?> to view.</p>
                         <p>To access this content, you need to <?php 
-                            echo $share['visibility'] === 'private' ? 'enter the password' : 'enter the access code'; 
+                            echo ($share['visibility'] ?? 'public') === 'private' ? 'enter the password' : 'enter the access code'; 
                         ?> provided by the creator.</p>
                         <div class="btn-group">
                             <a href="index.php" class="btn btn-primary">

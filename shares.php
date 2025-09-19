@@ -101,12 +101,12 @@ try {
                             <div class="share-info">
                                 <h4><?php echo htmlspecialchars($share['title'] ?? 'Untitled'); ?></h4>
                                 <p class="share-meta">
-                                    <span class="visibility-badge <?php echo $share['visibility']; ?>">
+                                    <span class="visibility-badge <?php echo $share['visibility'] ?? 'public'; ?>">
                                         <i class="fas fa-<?php 
-                                            echo $share['visibility'] === 'public' ? 'globe' : 
-                                                 ($share['visibility'] === 'private' ? 'lock' : 'shield-alt'); 
+                                            echo ($share['visibility'] ?? 'public') === 'public' ? 'globe' : 
+                                                 (($share['visibility'] ?? 'public') === 'private' ? 'lock' : 'shield-alt'); 
                                         ?>"></i> 
-                                        <?php echo ucfirst($share['visibility'] ?? ''); ?>
+                                        <?php echo ucfirst($share['visibility'] ?? 'public'); ?>
                                     </span>
                                     <span>
                                         <i class="fas fa-<?php 
