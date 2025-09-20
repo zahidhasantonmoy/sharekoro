@@ -15,7 +15,7 @@ define('DB_PASS', 'kkfRZ1rUzP5b5');
 define('DB_NAME', 'if0_39860069_sharekoro');
 
 // Site configuration
-define('SITE_URL', 'http://sharekoro.rf.gd'); // Change to your actual domain
+define('SITE_URL', 'https://sharekoro.free.nf'); // Change to your actual domain
 define('SITE_NAME', 'ShareKoro');
 define('ADMIN_EMAIL', 'admin@sharekoro.com');
 
