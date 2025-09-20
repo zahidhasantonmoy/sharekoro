@@ -63,9 +63,10 @@ ShareKoro is a modern, secure, and anonymous file/text/code sharing platform bui
 1. Clone the repository
 2. Upload files to your web server
 3. Create a MySQL database and import `database_schema.sql`
-4. Update `config.php` with your database credentials
-5. Ensure the `uploads/` directory is writable
-6. Access the site through your web browser
+4. Run `database_visibility_updates.sql` to add visibility features
+5. Update `config.php` with your database credentials
+6. Ensure the `uploads/` directory is writable
+7. Access the site through your web browser
 
 ## Configuration
 
@@ -74,6 +75,17 @@ Update the following settings in `config.php`:
 - Site URL and name
 - File upload settings
 - Expiration options
+
+## Troubleshooting
+
+If you encounter 500 Internal Server Errors:
+
+1. Check that all database updates have been applied (run `update_database.php`)
+2. Verify PHP version compatibility (PHP 7.4 or 8.0 recommended)
+3. Ensure file permissions are set correctly for `uploads/` directory
+4. Check `error.log` for detailed error messages
+5. Run `debug.php` to test database connectivity
+6. See `TROUBLESHOOTING.md` for more detailed solutions
 
 ## Developer
 

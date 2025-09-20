@@ -1,6 +1,12 @@
 <?php
 // config.php - Database configuration and constants
 
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/error.log');
+
 // Database configuration for InfinityFree
 define('DB_HOST', 'sql204.infinityfree.com');
 define('DB_PORT', 3306);

@@ -15,108 +15,109 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
         $error = 'Invalid request. Please try again.';
     } else {
-    $title = sanitizeInput($_POST['title']);
-    $expiration = sanitizeInput($_POST['expiration']);
-    $visibility = sanitizeInput($_POST['visibility']);
-    $password = $_POST['password'];
-    $access_code = isset($_POST['access_code']) ? sanitizeInput($_POST['access_code']) : null;
-    $is_public = isset($_POST['is_public']) ? 1 : 0;
-    
-    // Validation
-    if (!isset($_FILES['file']) || $_FILES['file']['error'] === UPLOAD_ERR_NO_FILE) {
-        $error = 'Please select a file to upload.';
-    } else {
-        $file = $_FILES['file'];
+        $title = sanitizeInput($_POST['title']);
+        $expiration = sanitizeInput($_POST['expiration']);
+        $visibility = sanitizeInput($_POST['visibility']);
+        $password = $_POST['password'];
+        $access_code = isset($_POST['access_code']) ? sanitizeInput($_POST['access_code']) : null;
+        $is_public = isset($_POST['is_public']) ? 1 : 0;
         
-        // Check file size
-        if ($file['size'] > MAX_FILE_SIZE) {
-            $error = 'File size exceeds the maximum allowed size of ' . formatFileSize(MAX_FILE_SIZE) . '.';
-        }
-        // Check file type
-        else if (!isValidFileType($file['type'])) {
-            $error = 'File type not allowed. Please upload a valid file.';
-        }
-        // Check file extension
-        else if (isDangerousFile($file['name'])) {
-            $error = 'File extension not allowed. Please upload a valid file.';
-        }
-        // Scan file content for security issues
-        else if (ENABLE_FILE_CONTENT_SCAN && !isSafeFileContent($file['tmp_name'])) {
-            $error = 'File content not allowed. Please upload a safe file.';
-        } elseif ($visibility === 'private' && empty($password)) {
-            $error = 'Password is required for private shares.';
-        } elseif ($visibility === 'protected' && empty($access_code)) {
-            $error = 'Access code is required for protected shares.';
+        // Validation
+        if (!isset($_FILES['file']) || $_FILES['file']['error'] === UPLOAD_ERR_NO_FILE) {
+            $error = 'Please select a file to upload.';
         } else {
-            try {
-                $db = new Database();
-                $pdo = $db->getConnection();
-                
-                // Generate unique share key
-                do {
-                    $share_key = generateShareKey();
-                    $stmt = $pdo->prepare("SELECT id FROM shares WHERE share_key = ?");
-                    $stmt->execute([$share_key]);
-                } while ($stmt->rowCount() > 0);
-                
-                // Create upload directory if it doesn't exist
-                if (!is_dir(UPLOAD_DIR)) {
-                    mkdir(UPLOAD_DIR, 0755, true);
-                }
-                
-                // Generate unique filename
-                $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-                $unique_filename = $share_key . '.' . $file_extension;
-                $file_path = UPLOAD_DIR . $unique_filename;
-                
-                // Move uploaded file
-                if (move_uploaded_file($file['tmp_name'], $file_path)) {
-                    // Get expiration date
-                    $expiration_date = getExpirationDate($expiration);
+            $file = $_FILES['file'];
+            
+            // Check file size
+            if ($file['size'] > MAX_FILE_SIZE) {
+                $error = 'File size exceeds the maximum allowed size of ' . formatFileSize(MAX_FILE_SIZE) . '.';
+            }
+            // Check file type
+            else if (!isValidFileType($file['type'])) {
+                $error = 'File type not allowed. Please upload a valid file.';
+            }
+            // Check file extension
+            else if (isDangerousFile($file['name'])) {
+                $error = 'File extension not allowed. Please upload a valid file.';
+            }
+            // Scan file content for security issues
+            else if (ENABLE_FILE_CONTENT_SCAN && !isSafeFileContent($file['tmp_name'])) {
+                $error = 'File content not allowed. Please upload a safe file.';
+            } elseif ($visibility === 'private' && empty($password)) {
+                $error = 'Password is required for private shares.';
+            } elseif ($visibility === 'protected' && empty($access_code)) {
+                $error = 'Access code is required for protected shares.';
+            } else {
+                try {
+                    $db = new Database();
+                    $pdo = $db->getConnection();
                     
-                    // Hash password if provided
-                    $hashed_password = !empty($password) ? hashPassword($password) : null;
+                    // Generate unique share key
+                    do {
+                        $share_key = generateShareKey();
+                        $stmt = $pdo->prepare("SELECT id FROM shares WHERE share_key = ?");
+                        $stmt->execute([$share_key]);
+                    } while ($stmt->rowCount() > 0);
                     
-                    // Set is_public based on visibility
-                    if ($visibility !== 'public') {
-                        $is_public = 0;
+                    // Create upload directory if it doesn't exist
+                    if (!is_dir(UPLOAD_DIR)) {
+                        mkdir(UPLOAD_DIR, 0755, true);
                     }
                     
-                    // Insert share with visibility settings
-                    $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, file_path, file_name, file_size, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    // Generate unique filename
+                    $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+                    $unique_filename = $share_key . '.' . $file_extension;
+                    $file_path = UPLOAD_DIR . $unique_filename;
                     
-                    // Fix the parameter count issue by ensuring all parameters are provided
-                    $result = $stmt->execute([
-                        $share_key,
-                        $title,
-                        $file_path,
-                        $file['name'],
-                        $file['size'],
-                        'file',
-                        $expiration_date,
-                        getCurrentUserId(),
-                        $is_public,
-                        $visibility,
-                        $hashed_password,
-                        $access_code
-                    ]);
-                    
-                    if ($result) {
-                        // Success
-                        $share_link = SITE_URL . '/view.php?key=' . $share_key;
-                        $success = 'File shared successfully!';
+                    // Move uploaded file
+                    if (move_uploaded_file($file['tmp_name'], $file_path)) {
+                        // Get expiration date
+                        $expiration_date = getExpirationDate($expiration);
+                        
+                        // Hash password if provided
+                        $hashed_password = !empty($password) ? hashPassword($password) : null;
+                        
+                        // Set is_public based on visibility
+                        if ($visibility !== 'public') {
+                            $is_public = 0;
+                        }
+                        
+                        // Insert share with visibility settings
+                        $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, file_path, file_name, file_size, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        
+                        // Fix the parameter count issue by ensuring all parameters are provided
+                        $result = $stmt->execute([
+                            $share_key,
+                            $title,
+                            $file_path,
+                            $file['name'],
+                            $file['size'],
+                            'file',
+                            $expiration_date,
+                            getCurrentUserId(),
+                            $is_public,
+                            $visibility,
+                            $hashed_password,
+                            $access_code
+                        ]);
+                        
+                        if ($result) {
+                            // Success
+                            $share_link = SITE_URL . '/view.php?key=' . $share_key;
+                            $success = 'File shared successfully!';
+                        } else {
+                            $error = 'Failed to share file. Please try again.';
+                        }
                     } else {
-                        $error = 'Failed to share file. Please try again.';
+                        $error = 'Failed to upload file. Please try again.';
                     }
-                } else {
+                } catch (PDOException $e) {
+                    $error = 'Failed to share file. Please try again.';
+                    error_log("File share error: " . $e->getMessage());
+                } catch (Exception $e) {
                     $error = 'Failed to upload file. Please try again.';
+                    error_log("File upload error: " . $e->getMessage());
                 }
-            } catch (PDOException $e) {
-                $error = 'Failed to share file. Please try again.';
-                error_log("File share error: " . $e->getMessage());
-            } catch (Exception $e) {
-                $error = 'Failed to upload file. Please try again.';
-                error_log("File upload error: " . $e->getMessage());
             }
         }
     }

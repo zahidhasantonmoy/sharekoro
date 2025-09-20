@@ -31,55 +31,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($visibility === 'protected' && empty($access_code)) {
             $error = 'Access code is required for protected shares.';
         } else {
-        try {
-            $db = new Database();
-            $pdo = $db->getConnection();
-            
-            // Generate unique share key
-            do {
-                $share_key = generateShareKey();
-                $stmt = $pdo->prepare("SELECT id FROM shares WHERE share_key = ?");
-                $stmt->execute([$share_key]);
-            } while ($stmt->rowCount() > 0);
-            
-            // Get expiration date
-            $expiration_date = getExpirationDate($expiration);
-            
-            // Hash password if provided
-            $hashed_password = !empty($password) ? hashPassword($password) : null;
-            
-            // Set is_public based on visibility
-            if ($visibility !== 'public') {
-                $is_public = 0;
-            }
-            
-            // Insert share with visibility settings
-            $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            
-            // Fix the parameter count issue by ensuring all parameters are provided
-            $result = $stmt->execute([
-                $share_key,
-                $title,
-                $content,
-                'text',
-                $expiration_date,
-                getCurrentUserId(),
-                $is_public,
-                $visibility,
-                $hashed_password,
-                $access_code
-            ]);
-            
-            if ($result) {
-                $share_id = $pdo->lastInsertId();
+            try {
+                $db = new Database();
+                $pdo = $db->getConnection();
                 
-                // Success
-                $share_link = SITE_URL . '/view.php?key=' . $share_key;
-                $success = 'Text shared successfully!';
-            } else {
-                $error = 'Failed to share text. Please try again.';
-            }
-        }
+                // Generate unique share key
+                do {
+                    $share_key = generateShareKey();
+                    $stmt = $pdo->prepare("SELECT id FROM shares WHERE share_key = ?");
+                    $stmt->execute([$share_key]);
+                } while ($stmt->rowCount() > 0);
+                
+                // Get expiration date
+                $expiration_date = getExpirationDate($expiration);
+                
+                // Hash password if provided
+                $hashed_password = !empty($password) ? hashPassword($password) : null;
+                
+                // Set is_public based on visibility
+                if ($visibility !== 'public') {
+                    $is_public = 0;
+                }
+                
+                // Insert share with visibility settings
+                $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                
+                // Fix the parameter count issue by ensuring all parameters are provided
+                $result = $stmt->execute([
+                    $share_key,
+                    $title,
+                    $content,
+                    'text',
+                    $expiration_date,
+                    getCurrentUserId(),
+                    $is_public,
+                    $visibility,
+                    $hashed_password,
+                    $access_code
+                ]);
+                
+                if ($result) {
+                    $share_id = $pdo->lastInsertId();
+                    
+                    // Success
+                    $share_link = SITE_URL . '/view.php?key=' . $share_key;
+                    $success = 'Text shared successfully!';
+                } else {
+                    $error = 'Failed to share text. Please try again.';
+                }
             } catch (PDOException $e) {
                 $error = 'Failed to share text. Please try again.';
                 error_log("Text share error: " . $e->getMessage());

@@ -15,77 +15,78 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!isset($_POST['csrf_token']) || !validateCSRFToken($_POST['csrf_token'])) {
         $error = 'Invalid request. Please try again.';
     } else {
-    $title = sanitizeInput($_POST['title']);
-    $content = $_POST['content'];
-    $language = sanitizeInput($_POST['language']);
-    $expiration = sanitizeInput($_POST['expiration']);
-    $visibility = sanitizeInput($_POST['visibility']);
-    $password = $_POST['password'];
-    $access_code = isset($_POST['access_code']) ? sanitizeInput($_POST['access_code']) : null;
-    $is_public = isset($_POST['is_public']) ? 1 : 0;
-    
-    // Validation
-    if (empty($content)) {
-        $error = 'Code content is required.';
-    } elseif ($visibility === 'private' && empty($password)) {
-        $error = 'Password is required for private shares.';
-    } elseif ($visibility === 'protected' && empty($access_code)) {
-        $error = 'Access code is required for protected shares.';
-    } else {
-        try {
-            $db = new Database();
-            $pdo = $db->getConnection();
-            
-            // Generate unique share key
-            do {
-                $share_key = generateShareKey();
-                $stmt = $pdo->prepare("SELECT id FROM shares WHERE share_key = ?");
-                $stmt->execute([$share_key]);
-            } while ($stmt->rowCount() > 0);
-            
-            // Get expiration date
-            $expiration_date = getExpirationDate($expiration);
-            
-            // Hash password if provided
-            $hashed_password = !empty($password) ? hashPassword($password) : null;
-            
-            // Set is_public based on visibility
-            if ($visibility !== 'public') {
-                $is_public = 0;
-            }
-            
-            // Insert share with visibility settings
-            $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            
-            // Fix the parameter count issue by ensuring all parameters are provided
-            $result = $stmt->execute([
-                $share_key,
-                $title,
-                $content,
-                'code',
-                $expiration_date,
-                getCurrentUserId(),
-                $is_public,
-                $visibility,
-                $hashed_password,
-                $access_code
-            ]);
-            
-            if ($result) {
-                $share_id = $pdo->lastInsertId();
+        $title = sanitizeInput($_POST['title']);
+        $content = $_POST['content'];
+        $language = sanitizeInput($_POST['language']);
+        $expiration = sanitizeInput($_POST['expiration']);
+        $visibility = sanitizeInput($_POST['visibility']);
+        $password = $_POST['password'];
+        $access_code = isset($_POST['access_code']) ? sanitizeInput($_POST['access_code']) : null;
+        $is_public = isset($_POST['is_public']) ? 1 : 0;
+        
+        // Validation
+        if (empty($content)) {
+            $error = 'Code content is required.';
+        } elseif ($visibility === 'private' && empty($password)) {
+            $error = 'Password is required for private shares.';
+        } elseif ($visibility === 'protected' && empty($access_code)) {
+            $error = 'Access code is required for protected shares.';
+        } else {
+            try {
+                $db = new Database();
+                $pdo = $db->getConnection();
                 
-                // Success
-                $share_link = SITE_URL . '/view.php?key=' . $share_key;
-                $success = 'Code shared successfully!';
-            } else {
+                // Generate unique share key
+                do {
+                    $share_key = generateShareKey();
+                    $stmt = $pdo->prepare("SELECT id FROM shares WHERE share_key = ?");
+                    $stmt->execute([$share_key]);
+                } while ($stmt->rowCount() > 0);
+                
+                // Get expiration date
+                $expiration_date = getExpirationDate($expiration);
+                
+                // Hash password if provided
+                $hashed_password = !empty($password) ? hashPassword($password) : null;
+                
+                // Set is_public based on visibility
+                if ($visibility !== 'public') {
+                    $is_public = 0;
+                }
+                
+                // Insert share with visibility settings
+                $stmt = $pdo->prepare("INSERT INTO shares (share_key, title, content, share_type, expiration_date, created_by, is_public, visibility, access_password, access_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                
+                // Fix the parameter count issue by ensuring all parameters are provided
+                $result = $stmt->execute([
+                    $share_key,
+                    $title,
+                    $content,
+                    'code',
+                    $expiration_date,
+                    getCurrentUserId(),
+                    $is_public,
+                    $visibility,
+                    $hashed_password,
+                    $access_code
+                ]);
+                
+                if ($result) {
+                    $share_id = $pdo->lastInsertId();
+                    
+                    // Success
+                    $share_link = SITE_URL . '/view.php?key=' . $share_key;
+                    $success = 'Code shared successfully!';
+                } else {
+                    $error = 'Failed to share code. Please try again.';
+                }
+            } catch (PDOException $e) {
                 $error = 'Failed to share code. Please try again.';
+                error_log("Code share error: " . $e->getMessage());
+            } catch (Exception $e) {
+                $error = 'An unexpected error occurred. Please try again.';
+                error_log("Code share exception: " . $e->getMessage());
             }
-        } catch (PDOException $e) {
-            $error = 'Failed to share code. Please try again.';
-            error_log("Code share error: " . $e->getMessage());
-        } catch (Exception $e) {
-            $error = 'An unexpected error occurred. Please try again.';
-            error_log("Code share exception: " . $e->getMessage());
         }
     }
 }
